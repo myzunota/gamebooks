@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ゲームブック書庫</title>
+<meta name="description" content="ブラウザで遊べるSFファンタジー・ゲームブック集。『残響の海』『沈まぬ者たち』">
+<style>
+  :root{
+    --bg:#0E0D12;
+    --ink:#DDD9CE;
+    --ink-dim:#8E8A7E;
+    --line:#2B2933;
+    --serif:"Hiragino Mincho ProN","Yu Mincho","BIZ UDMincho","Noto Serif JP","Noto Serif CJK JP",serif;
+    --sans:"Hiragino Kaku Gothic ProN","Yu Gothic Medium","Yu Gothic",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:var(--bg);color:var(--ink);font-family:var(--serif);
+    line-height:1.9;min-height:100vh;
+  }
+  .wrap{max-width:840px;margin:0 auto;padding:0 20px 80px}
+
+  header{padding:64px 0 36px;text-align:center}
+  h1{font-size:1.6rem;letter-spacing:.5em;text-indent:.5em;font-weight:normal;margin-bottom:10px}
+  .tagline{font-family:var(--sans);font-size:.78rem;letter-spacing:.2em;color:var(--ink-dim)}
+  .rule{width:72px;height:1px;background:var(--ink-dim);opacity:.5;margin:26px auto 0}
+
+  .shelf{display:grid;gap:26px;margin-top:40px}
+  @media (min-width:700px){ .shelf{grid-template-columns:1fr 1fr} }
+
+  .book{display:block;text-decoration:none;color:inherit;border:1px solid var(--line);
+    border-radius:6px;overflow:hidden;transition:transform .18s ease,border-color .18s ease}
+  .book:hover{transform:translateY(-3px)}
+  .book:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+
+  .cover{position:relative;height:210px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .cover .ttl{position:relative;z-index:1;font-size:1.7rem;letter-spacing:.3em;text-indent:.3em;text-align:center;line-height:1.6}
+  .cover .sub{display:block;font-size:.72rem;letter-spacing:.28em;margin-top:8px;opacity:.85}
+
+  /* 一作目:深海の夜 */
+  .book.sea{background:#0B0F1E}
+  .book.sea:hover{border-color:#D5A45E}
+  .book.sea .cover{
+    background:
+      radial-gradient(1px 1px at 18% 30%, #cfd6ea 60%, transparent 61%),
+      radial-gradient(1.4px 1.4px at 74% 22%, #e8ddc0 60%, transparent 61%),
+      radial-gradient(1px 1px at 60% 70%, #9aa6c8 60%, transparent 61%),
+      radial-gradient(1px 1px at 34% 82%, #cfd6ea 60%, transparent 61%),
+      radial-gradient(1px 1px at 88% 56%, #9aa6c8 60%, transparent 61%),
+      linear-gradient(180deg,#0B0F1E 0%,#121A38 100%)}
+  .book.sea .ttl{color:#D9DDE8;writing-mode:vertical-rl;text-orientation:mixed;letter-spacing:.34em;text-indent:0;
+    border-right:1px solid #D5A45E;padding-right:14px;height:150px}
+  .book.sea .sub{color:#D5A45E;writing-mode:vertical-rl;margin:0 0 0 10px}
+  .book.sea .cover .ttlwrap{display:flex;flex-direction:row-reverse;align-items:center}
+
+  /* 二作目:泥海 */
+  .book.mud{background:#161006}
+  .book.mud:hover{border-color:#EDE6D4}
+  .book.mud .cover{
+    background:
+      radial-gradient(1px 1px at 26% 34%, rgba(230,220,195,.3) 60%, transparent 61%),
+      radial-gradient(1.2px 1.2px at 70% 48%, rgba(230,220,195,.2) 60%, transparent 61%),
+      linear-gradient(180deg,#1D150A 0%,#161006 46%,#241A0E 58%,#120C05 100%)}
+  .book.mud .ttl{
+    background:linear-gradient(180deg,#EDE6D4 0%,#EDE6D4 44%,#C9A96B 56%,#7A5C33 80%,#4A3820 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .book.mud .sub{color:#9C8F74}
+
+  .desc{padding:18px 20px 20px;border-top:1px solid var(--line)}
+  .desc p{font-size:.86rem;color:var(--ink-dim);text-align:justify;margin-bottom:12px}
+  .meta{display:flex;gap:8px;flex-wrap:wrap;font-family:var(--sans)}
+  .tag{font-size:.68rem;letter-spacing:.08em;color:var(--ink-dim);border:1px solid var(--line);
+    border-radius:12px;padding:2px 10px}
+  .play{display:inline-block;margin-top:14px;font-family:var(--sans);font-size:.78rem;letter-spacing:.16em}
+  .book.sea .play{color:#D5A45E}
+  .book.mud .play{color:#EDE6D4}
+
+  footer{margin-top:56px;text-align:center;font-family:var(--sans);
+    font-size:.7rem;letter-spacing:.12em;color:var(--ink-dim);line-height:2}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>ゲームブック書庫</h1>
+    <p class="tagline">選択肢で分岐する、ブラウザで読む物語</p>
+    <div class="rule"></div>
+  </header>
+
+  <main class="shelf">
+    <a class="book sea" href="./zankyou_no_umi_gamebook.html">
+      <div class="cover">
+        <div class="ttlwrap">
+          <span class="ttl">残響の海</span>
+          <span class="sub">軌道清掃船〈ヒバリ〉航海録</span>
+        </div>
+      </div>
+      <div class="desc">
+        <p>大破砕後の低軌道。デブリの海には、死んだ機械たちの声——「残響」が漂う。掃除屋のあなたは、歌い続ける気象衛星の少女と、任務完了を告げられなかった王に出会う。</p>
+        <div class="meta">
+          <span class="tag">SFファンタジー</span>
+          <span class="tag">結末 6種</span>
+          <span class="tag">共鳴と断片</span>
+        </div>
+        <span class="play">▶ 航海をはじめる</span>
+      </div>
+    </a>
+
+    <a class="book mud" href="./shizumanu_monotachi_gamebook.html">
+      <div class="cover">
+        <div class="ttlwrap">
+          <span class="ttl">沈まぬ者たち<span class="sub">泥海と白い都 ― 潜り屋遠征記</span></span>
+        </div>
+      </div>
+      <div class="desc">
+        <p>大地が泥にほどけて百年。貴族は己の重さを民に移し替え、白い都に浮かんで暮らす。黒泥の潜り屋のあなたは、沈んだ世界の底で「根の種」の伝承に触れる。</p>
+        <div class="meta">
+          <span class="tag">泥海ファンタジー</span>
+          <span class="tag">結末 6種+落命 4種</span>
+          <span class="tag">体力・所持品・予兆読み戦闘</span>
+        </div>
+        <span class="play">▶ 泥海へ潜る</span>
+      </div>
+    </a>
+  </main>
+
+  <footer>
+    単一HTML・通信不要・セーブはコード方式<br>
+    スマートフォン/PC対応 ― 数字キーでも選択できます
+  </footer>
+</div>
+</body>
+</html>
