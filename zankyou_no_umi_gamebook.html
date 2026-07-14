@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>残響の海 ― 軌道清掃船〈ヒバリ〉航海録</title>
+<style>
+  :root{
+    --bg:#0B0F1E;          /* 深海の夜 */
+    --panel:#141A30;       /* 薄明 */
+    --panel2:#1A2140;
+    --ink:#D9DDE8;         /* 星霜 */
+    --ink-dim:#8B93AC;
+    --gold:#D5A45E;        /* 残響の金 */
+    --gold-dim:#8A6F47;
+    --signal:#7EC4BC;      /* 信号の青緑 */
+    --rust:#C2604E;        /* 警告の錆 */
+    --line:#2A3354;
+    --serif:"Hiragino Mincho ProN","Yu Mincho","BIZ UDMincho","Noto Serif JP","Noto Serif CJK JP",serif;
+    --sans:"Hiragino Kaku Gothic ProN","Yu Gothic Medium","Yu Gothic",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{font-size:16px}
+  body{
+    background:var(--bg);color:var(--ink);font-family:var(--serif);
+    line-height:1.95;min-height:100vh;overflow-x:hidden;
+  }
+  /* 星野 */
+  .stars{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.8;
+    background-image:
+      radial-gradient(1px 1px at 12% 22%, #cfd6ea 60%, transparent 61%),
+      radial-gradient(1px 1px at 78% 14%, #9aa6c8 60%, transparent 61%),
+      radial-gradient(1.5px 1.5px at 55% 68%, #e8ddc0 60%, transparent 61%),
+      radial-gradient(1px 1px at 30% 84%, #cfd6ea 60%, transparent 61%),
+      radial-gradient(1px 1px at 90% 52%, #9aa6c8 60%, transparent 61%),
+      radial-gradient(1.2px 1.2px at 66% 33%, #cfd6ea 60%, transparent 61%),
+      radial-gradient(1px 1px at 8% 60%, #7f8db0 60%, transparent 61%),
+      radial-gradient(1px 1px at 42% 8%, #cfd6ea 60%, transparent 61%),
+      radial-gradient(1.4px 1.4px at 84% 82%, #e8ddc0 60%, transparent 61%),
+      radial-gradient(1px 1px at 22% 44%, #7f8db0 60%, transparent 61%);
+  }
+  @media (prefers-reduced-motion: no-preference){
+    .stars{animation:drift 240s linear infinite}
+    @keyframes drift{from{background-position:0 0}to{background-position:-800px 300px}}
+    .para{opacity:0;transform:translateY(8px);animation:rise .7s ease forwards}
+    @keyframes rise{to{opacity:1;transform:none}}
+  }
+  .wrap{position:relative;z-index:1;max-width:720px;margin:0 auto;padding:0 20px 96px}
+
+  /* ヘッダー */
+  header{display:flex;align-items:baseline;justify-content:space-between;gap:8px;
+    padding:14px 2px 10px;border-bottom:1px solid var(--line);font-family:var(--sans)}
+  .brand{font-family:var(--serif);letter-spacing:.35em;font-size:.95rem;color:var(--ink-dim);white-space:nowrap}
+  nav{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+  nav button{background:none;border:1px solid var(--line);color:var(--ink-dim);
+    font-family:var(--sans);font-size:.72rem;padding:4px 9px;border-radius:3px;cursor:pointer;letter-spacing:.08em}
+  nav button:hover{border-color:var(--gold-dim);color:var(--gold)}
+  nav button:disabled{opacity:.35;cursor:default}
+  nav button:disabled:hover{border-color:var(--line);color:var(--ink-dim)}
+
+  /* 受信機パネル */
+  .receiver{display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+    margin:14px 0 26px;padding:10px 14px;background:var(--panel);
+    border:1px solid var(--line);border-radius:4px;font-family:var(--sans)}
+  .rx-block{display:flex;align-items:center;gap:8px}
+  .rx-label{font-size:.68rem;letter-spacing:.22em;color:var(--ink-dim)}
+  canvas#wave{display:block;background:#0d1226;border-radius:2px}
+  .rx-num{font-size:.8rem;color:var(--signal);min-width:2.6em}
+  .frag-dots{display:flex;gap:7px}
+  .frag-dot{width:11px;height:11px;transform:rotate(45deg);border:1px solid var(--gold-dim);opacity:.45}
+  .frag-dot.on{background:var(--gold);border-color:var(--gold);opacity:1;box-shadow:0 0 6px rgba(213,164,94,.5)}
+  .rx-loc{margin-left:auto;font-size:.72rem;letter-spacing:.15em;color:var(--ink-dim)}
+
+  /* 場面 */
+  .scene{display:grid;grid-template-columns:64px 1fr;gap:22px;margin-bottom:34px}
+  .scene-title{writing-mode:vertical-rl;text-orientation:mixed;
+    border-left:1px solid var(--line);padding-left:14px;user-select:none}
+  .scene-title .chap{font-size:.72rem;letter-spacing:.4em;color:var(--ink-dim);margin-left:10px}
+  .scene-title .ttl{font-size:1.5rem;letter-spacing:.3em;color:var(--gold)}
+  .scene-text p{margin-bottom:1.15em;font-size:1.02rem;text-align:justify}
+  .para{animation-delay:calc(var(--i) * .12s)}
+
+  /* 選択肢 */
+  .choices{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+  .choice{display:flex;gap:12px;align-items:baseline;text-align:left;width:100%;
+    background:var(--panel);border:1px solid var(--line);border-radius:4px;
+    color:var(--ink);font-family:var(--serif);font-size:.98rem;line-height:1.7;
+    padding:13px 16px;cursor:pointer;transition:border-color .15s,background .15s}
+  .choice:hover{border-color:var(--gold);background:var(--panel2)}
+  .choice:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+  .choice .num{font-family:var(--sans);font-size:.72rem;color:var(--gold);letter-spacing:.1em;min-width:1.2em}
+  .choice.locked{cursor:default;opacity:.55;border-style:dashed}
+  .choice.locked:hover{border-color:var(--line);background:var(--panel)}
+  .choice.locked .num{color:var(--ink-dim)}
+  .locked-hint{display:block;font-size:.76rem;color:var(--rust);margin-top:4px;font-family:var(--sans);letter-spacing:.04em}
+
+  /* 終幕 */
+  .ending-card{margin-top:30px;padding:22px 20px;text-align:center;border:1px solid var(--gold-dim);
+    border-radius:4px;background:linear-gradient(180deg,var(--panel),#10152b)}
+  .ending-card.tone-true{border-color:var(--gold);box-shadow:0 0 24px rgba(213,164,94,.18)}
+  .ending-card.tone-dark{border-color:var(--rust)}
+  .ending-card.tone-warm{border-color:var(--gold-dim)}
+  .ending-eyebrow{font-family:var(--sans);font-size:.68rem;letter-spacing:.4em;color:var(--ink-dim);margin-bottom:10px}
+  .ending-name{font-size:1.25rem;letter-spacing:.25em;color:var(--gold);margin-bottom:16px}
+  .ending-count{font-family:var(--sans);font-size:.75rem;color:var(--ink-dim);margin-bottom:18px}
+  .ending-card .btnrow{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .btn{background:none;border:1px solid var(--gold-dim);color:var(--gold);border-radius:3px;
+    font-family:var(--sans);font-size:.8rem;letter-spacing:.12em;padding:9px 18px;cursor:pointer}
+  .btn:hover{border-color:var(--gold);background:rgba(213,164,94,.08)}
+  .btn.secondary{border-color:var(--line);color:var(--ink-dim)}
+  .btn.secondary:hover{color:var(--ink);border-color:var(--ink-dim);background:none}
+
+  /* タイトル画面 */
+  .title-screen{display:grid;grid-template-columns:1fr auto;gap:30px;align-items:start;padding:48px 0 20px}
+  .title-main{writing-mode:vertical-rl;text-orientation:mixed;justify-self:end;
+    font-size:3.2rem;letter-spacing:.42em;color:var(--ink);
+    border-right:2px solid var(--gold);padding-right:22px;min-height:320px}
+  .title-main small{display:block;font-size:.9rem;letter-spacing:.34em;color:var(--gold);margin-right:14px;margin-top:8px}
+  .title-body{max-width:400px}
+  .title-body .lead{font-size:.95rem;color:var(--ink);margin-bottom:22px;text-align:justify}
+  .howto{font-family:var(--sans);font-size:.78rem;color:var(--ink-dim);line-height:1.9;
+    border:1px solid var(--line);border-radius:4px;padding:14px 16px;margin-bottom:24px}
+  .howto li{list-style:none;padding-left:1em;text-indent:-1em;margin-bottom:4px}
+  .howto li::before{content:"—";margin-right:.5em;color:var(--gold-dim)}
+  .title-btns{display:flex;flex-direction:column;gap:10px;max-width:280px}
+
+  /* モーダル */
+  .modal-bg{position:fixed;inset:0;background:rgba(5,8,18,.82);z-index:10;display:none;
+    align-items:flex-start;justify-content:center;padding:6vh 16px}
+  .modal-bg.open{display:flex}
+  .modal{background:var(--panel);border:1px solid var(--line);border-radius:5px;
+    max-width:560px;width:100%;max-height:82vh;overflow-y:auto;padding:22px 24px}
+  .modal h2{font-size:1rem;letter-spacing:.3em;color:var(--gold);margin-bottom:16px;font-weight:normal}
+  .modal .close-row{text-align:right;margin-top:18px}
+  .gloss dt{color:var(--signal);font-size:.92rem;margin-top:14px;letter-spacing:.06em}
+  .gloss dd{font-size:.86rem;color:var(--ink-dim);line-height:1.85;margin-top:2px}
+  .achv{list-style:none}
+  .achv li{display:flex;gap:12px;align-items:baseline;padding:9px 2px;border-bottom:1px dashed var(--line);font-size:.9rem}
+  .achv .mark{font-family:var(--sans);font-size:.7rem;min-width:3.2em;letter-spacing:.1em}
+  .achv .got .mark{color:var(--gold)} .achv .got{color:var(--ink)}
+  .achv .not{color:var(--ink-dim)} .achv .not .mark{color:var(--line)}
+  .logline{font-size:.86rem;padding:7px 0;border-bottom:1px dashed var(--line);line-height:1.7}
+  .logline .lt{color:var(--ink-dim)} .logline .lc{color:var(--gold);font-size:.8rem;display:block}
+  .save-area{width:100%;background:#0d1226;color:var(--signal);border:1px solid var(--line);
+    border-radius:3px;font-family:monospace;font-size:.72rem;padding:10px;min-height:96px;
+    word-break:break-all;line-height:1.5}
+  .modal .note{font-family:var(--sans);font-size:.74rem;color:var(--ink-dim);margin:8px 0;line-height:1.7}
+  .modal .btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .save-msg{font-family:var(--sans);font-size:.76rem;color:var(--signal);min-height:1.2em;margin-top:6px}
+
+  /* トースト */
+  .toasts{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:20;
+    display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+  .toast{background:var(--panel2);border:1px solid var(--gold-dim);color:var(--gold);
+    font-family:var(--sans);font-size:.78rem;letter-spacing:.08em;padding:8px 18px;border-radius:20px;
+    opacity:0;transition:opacity .35s}
+  .toast.show{opacity:1}
+
+  @media (max-width:600px){
+    .scene{grid-template-columns:1fr;gap:12px}
+    .scene-title{writing-mode:horizontal-tb;border-left:none;border-bottom:1px solid var(--line);
+      padding:0 0 8px}
+    .scene-title .chap{margin-left:0;margin-right:12px}
+    .title-screen{grid-template-columns:1fr;padding-top:30px}
+    .title-main{writing-mode:horizontal-tb;border-right:none;border-bottom:2px solid var(--gold);
+      padding:0 0 14px;min-height:0;font-size:2.2rem;justify-self:start;margin-bottom:8px}
+    .title-main small{margin:8px 0 0}
+    .rx-loc{margin-left:0;width:100%}
+  }
+</style>
+</head>
+<body>
+<div class="stars" aria-hidden="true"></div>
+<div class="wrap">
+  <header>
+    <div class="brand">残響の海</div>
+    <nav>
+      <button id="btnUndo" title="直前の選択をやり直す">一手戻る</button>
+      <button id="btnLog">航海録</button>
+      <button id="btnGloss">用語集</button>
+      <button id="btnAchv">結末</button>
+      <button id="btnSave">通信記録</button>
+      <button id="btnTitle">表題へ</button>
+    </nav>
+  </header>
+  <div class="receiver" id="receiver" style="display:none">
+    <div class="rx-block">
+      <span class="rx-label">共鳴</span>
+      <canvas id="wave" width="120" height="26" aria-hidden="true"></canvas>
+      <span class="rx-num" id="resNum">0/10</span>
+    </div>
+    <div class="rx-block">
+      <span class="rx-label">断片</span>
+      <div class="frag-dots" id="fragDots"></div>
+    </div>
+    <div class="rx-loc" id="rxLoc"></div>
+  </div>
+  <main id="main" aria-live="polite"></main>
+</div>
+
+<div class="modal-bg" id="modalBg" role="dialog" aria-modal="true">
+  <div class="modal" id="modalBox"></div>
+</div>
+<div class="toasts" id="toasts"></div>
+
+<script>
+// ============================================================
+// 『残響の海』 物語データ — 単一の真実源
+// 条件DSL: {res:n}=共鳴n以上 / {flag:"x"} / {notFlag:"x"} /
+//          {frag:"fx"} / {fragCount:n} / {all:[...]} / {any:[...]}
+// 効果:    {res:+n, flag:"x"|[..], unflag:"x", frag:"fx"}
+// choice.to: 文字列 or [{if:cond, to:"id"},{to:"既定"}]
+// ============================================================
+const STORY = {
+  meta: {
+    title: "残響の海",
+    subtitle: "軌道清掃船〈ヒバリ〉航海録",
+    intro: "西暦二一四三年。四十五年前の衝突連鎖〈大破砕〉以来、地球低軌道は砕けた衛星の欠片が潮のように流れる〈浅瀬〉と化した。あなたは軌道清掃船〈ヒバリ〉を駆る掃除屋。今日の獲物は、四十年前に死んだはずの——歌う衛星。",
+    howto: [
+      "物語を読み、選択肢を選んで進みます(数字キーでも選べます)。",
+      "【共鳴】…… 死んだ機械たちの声に耳を澄ますと高まります。深い共鳴だけが開く扉があります。",
+      "【断片】…… 海で拾い集めた記憶。最大四つ。集めた数が結末を変えることがあります。",
+      "結末は全部で六つ。「一手戻る」でいつでも直前の選択をやり直せます。"
+    ]
+  },
+  glossary: [
+    { term: "残響(ざんきょう)", def: "長い年月、人の声や電波を浴び続けた機械に宿る「声の名残」。幽霊とも魂とも、ただの信号異常とも言われる。掃除屋の間の隠語。" },
+    { term: "浅瀬(あさせ)", def: "デブリが密集する地球低軌道の俗称。時速数万キロの砂粒が飛び交う、宇宙で最も危険な海。" },
+    { term: "大破砕(だいはさい)", def: "二〇九八年に起きた衛星の衝突連鎖事故。数千の衛星が砕け、低軌道は十年近く閉鎖された。" },
+    { term: "掃除屋", def: "軌道上のデブリを回収・処分する民間業者。宇宙の漁師とも墓守とも呼ばれる。" },
+    { term: "磁気錨(じきいかり)", def: "清掃船の主装備。電磁石の銛を撃ち込み、デブリを係留・回収する。撃ち方次第では武器にもなる。" },
+    { term: "墓標の海", def: "高度八〇〇キロ付近、大破砕の震源域。冷戦期からの死んだ衛星が最も濃く積み重なる場所。" },
+    { term: "共鳴", def: "残響の声が「聞こえる」度合い。耳を澄ます者にだけ、海は深いところまで語りかける。" }
+  ],
+  startNode: "start",
+  nodes: {
+    // ---------- 第一章 浅瀬 ----------
+    start: {
+      chapter: "第一章 浅瀬",
+      title: "拾い屋の朝",
+      text: "高度五五〇キロ。夜側の地球は黒い海のようで、都市の光が砂金のように散っている。あなたは軌道清掃船〈ヒバリ〉の操縦席で、契約書の最終ページに親指を押しつけた。\n今回の獲物は、四十年前に死んだ気象衛星〈しらさぎ8号〉。回収して高度を落とし、大気で燃やす。それだけの、いつもの仕事のはずだった。\n船載AI〈モズ〉の合成音声が言う。「ひとつ、妙なことがあります。聞きますか」",
+      choices: [
+        { label: "「聞こう」", to: "briefing" },
+        { label: "「あとでいい。出るぞ」", to: "departure" }
+      ]
+    },
+    briefing: {
+      chapter: "第一章 浅瀬",
+      title: "モズの報告",
+      text: "「〈しらさぎ8号〉は死んでいるはずなのに、電波を出しています。出力は微弱、変調は旧式。内容は——子守唄です。人間の、古い子守唄」\nモズは事務的な声のまま続ける。「掃除屋の間では『残響』と呼ぶそうですね。長く人の声を浴びた機械に残る、声のようなもの。わたしは統計上の異常としか言えませんが……あなたは、信じますか」\nあなたは答えず、係留を解いた。信じるかどうかは、会ってから決めればいい。",
+      effects: { flag: "mozTrust" },
+      choices: [{ label: "出港する", to: "departure" }]
+    },
+    departure: {
+      chapter: "第一章 浅瀬",
+      title: "二本の航路",
+      text: "低軌道は〈浅瀬〉と呼ばれる。二〇九八年の大破砕以来、砕けた衛星の欠片が潮のように流れ、時速数万キロの砂粒が船殻を叩く海だ。\nレーダーに、目的地までの二本の航路が浮かぶ。管制が引いた正規航路は安全だが遠回り。破片流を横切る近道は、腕に自信のある者だけの道。",
+      choices: [
+        { label: "正規航路を行く", to: "lane_safe" },
+        { label: "破片流を横切る近道へ", to: "lane_short" }
+      ]
+    },
+    lane_safe: {
+      chapter: "第一章 浅瀬",
+      title: "漂流物",
+      text: "正規航路は静かだった。ただ一度だけ、レーダーが小さな影を拾う。\n船外服の手袋だ。指の形のまま凍りつき、四十年、ここを回り続けている。持ち主の名はもう分からない。大破砕の夜に失われた、誰かの右手の記憶。\nモズが言う。「回収しますか。遺品として登録できます」",
+      choices: [
+        { label: "回収する", effects: { frag: "f1" }, to: "approach" },
+        { label: "手を合わせ、航路を譲る", effects: { res: 1 }, to: "approach" }
+      ]
+    },
+    lane_short: {
+      chapter: "第一章 浅瀬",
+      title: "破片流",
+      text: "近道は、砂嵐の中を泳ぐのに似ていた。回避機動の連続。それでも一粒、掠めた。船殻に火花が走り、警報が鳴る。外殻第三パネル損傷。致命傷ではないが、無傷でもない。\n息をついたその時、あなたは聞いた。ノイズの奥、流れ去る破片の川の中から、微かな——歌。口ずさむような、数え歌のような。振り返っても、そこには砂粒の奔流があるだけだ。",
+      effects: { flag: "dmg", res: 1 },
+      choices: [
+        { label: "船外に出て応急修理をする", to: "patch" },
+        { label: "構わず先を急ぐ", to: "approach" }
+      ]
+    },
+    patch: {
+      chapter: "第一章 浅瀬",
+      title: "応急修理",
+      text: "船外に出て、損傷パネルに補修材を流し込む。命綱の先で地球が回り、沈黙が耳に痛い。\n「ひとつ聞いても」とモズが回線越しに言う。「さっき、何かを聴いた顔をしていましたね。カメラ越しでも分かりました」\nあなたが答えずにいると、モズは続けた。「……わたしにも、聞こえた気がしたんです。統計上の異常、と記録しておきますが」\n修理を終え、船内へ戻る。船体は元通りだ。",
+      effects: { flag: "mozTrust", unflag: "dmg" },
+      choices: [{ label: "先へ進もう", to: "approach" }]
+    },
+    approach: {
+      chapter: "第一章 浅瀬",
+      title: "歌う衛星",
+      text: "〈しらさぎ8号〉は、翼を広げた鳥の骨のような姿で漂っていた。太陽電池は千切れ、白い外装は宇宙線で灰色に灼けている。\nだが、確かに歌っていた。ねむれ、ねむれ——ノイズまじりの子守唄が、受信機の中で繰り返される。\nそのとき、歌に別の声が重なった。幼い声だ。\n「……ねえ。あなた、生きてる人?」",
+      choices: [
+        { label: "「生きてるよ。きみは?」と応える", effects: { res: 2, flag: "metShirasagi" }, to: "shirasagi_talk" },
+        { label: "応えず、回収アームを伸ばす", to: "grab" },
+        { label: "モズに信号を解析させる", to: "analyze" }
+      ]
+    },
+    shirasagi_talk: {
+      chapter: "第一章 浅瀬",
+      title: "しらさぎ",
+      text: "「わたし、しらさぎ。ずっと歌ってた。歌ってないと、こわいから」\n声の主は衛星の残響だった。四十年間、雲と台風を見張り、地上の子どもたちに天気を届けた機械の、声の名残。\n彼女は言う。「ねえ、海のみんな、ねむれないの。王さまが呼ぶから。ぜんぶの壊れた子を、呼んでるから」\n別れ際、彼女はあなたの受信機に小さなデータを残した。〈JA-SRS8〉。彼女の本当のコールサイン。——名前だ。",
+      effects: { frag: "f2" },
+      choices: [{ label: "「王さま……?」", to: "orders" }]
+    },
+    grab: {
+      chapter: "第一章 浅瀬",
+      title: "不協和音",
+      text: "アームの爪が衛星に触れた瞬間、歌が止んだ。\n代わりに、海全体が軋んだ。数百キロ四方のデブリが、いっせいに同じ周波数で震えたのだ。低い、地鳴りのような合唱。レーダー上で、死んだはずの破片たちがわずかに姿勢を変える。眠っていた群れが、首をもたげたように。\nモズが警告を発する。「複数のデブリが自発的に軌道を変更。震源は——もっと高い軌道です。何かが、呼んでいます」",
+      effects: { flag: "knowKing" },
+      choices: [{ label: "「……仕事の範囲を超えてきたな」", to: "orders" }]
+    },
+    analyze: {
+      chapter: "第一章 浅瀬",
+      title: "歌の下の網",
+      text: "「子守唄の下に、別の信号が埋まっています」モズが波形を展開する。\n歌の隙間を縫うように、無数の応答信号が飛び交っていた。死んだ衛星から、死んだ衛星へ。壊れた破片から、壊れた破片へ。低軌道全体が、ひとつの神経の網のように繋がっている。\n「網の中心は高度八〇〇キロ。旧軍事衛星網の墓場です。何かが……皆を繋いで、呼び集めている」",
+      effects: { flag: "knowKing", res: 1 },
+      choices: [{ label: "「中心、か」", to: "orders" }]
+    },
+    orders: {
+      chapter: "第一章 浅瀬",
+      title: "任務変更",
+      text: "地上管制の原(はら)から緊急通信が入る。\n「〈ヒバリ〉、聞こえるか。この六時間で二百のデブリが説明のつかない軌道変更を起こした。このままでは数週間で衝突連鎖——第二の大破砕だ。現場に一番近いのは君だ。高度八〇〇、通称〈墓標の海〉。調査を頼めるか。報酬は言い値でいい」\nモズが小声で付け加える。「言い値、だそうです」",
+      choices: [
+        { label: "「受ける。どうせ帰り道だ」", to: "graveyard" },
+        { label: "「契約外だ。降りる」", to: "ret_1" }
+      ]
+    },
+    ret_1: {
+      chapter: "第一章 浅瀬",
+      title: "帰り道",
+      text: "降下軌道に乗る。地球が近づき、浅瀬の砂粒が遠ざかる。\nだが、受信機は歌を拾い続けていた。ねむれ、ねむれ。高度を落としても、周波数を変えても、子守唄は追いかけてくる。まるで袖を掴む、小さな手のように。\nモズが沈黙を破る。「……戻りますか。まだ、間に合いますが」",
+      choices: [
+        { label: "「引き返す」", effects: { res: 1 }, to: "graveyard" },
+        { label: "「振り切る。俺たちの海じゃない」", to: "ending_return" }
+      ]
+    },
+    // ---------- 第二章 墓標の海 ----------
+    graveyard: {
+      chapter: "第二章 墓標の海",
+      title: "環",
+      text: "高度八〇〇キロ。ここは大破砕の震源、そして冷戦期から積み重なった死んだ衛星たちの墓場だ。\nだが今、墓は動いていた。何千という残骸がゆっくりと隊列を組み、地球を取り巻く巨大な環を描こうとしている。\nレーダーが三つの異変を示す。環の内側を漂う巨大な影——旧ステーションの残骸。銀色に光る糸の群れ。そして環の中心、すべての信号が吸い込まれていく暗い一点。",
+      choices: [
+        { label: "巨大な影へ向かう", to: "whale" },
+        { label: "光る糸の群れへ", to: "weavers" },
+        { label: "中心の暗点へ、まっすぐ", to: "center" }
+      ]
+    },
+    whale: {
+      chapter: "第二章 墓標の海",
+      title: "巨鯨〈とこよ〉",
+      text: "それは三十年前に放棄された研究ステーション〈とこよ〉だった。裂けた与圧殻が肋骨のように開き、鯨の亡骸を思わせる。あなたは船を寄せ、船外服で内部へ入る。\n無重力の廃墟。凍った書類が雪のように舞い、実験区画には、球形に凍りついた水塊が浮かんでいた。氷の中に、鮮やかな緋色——金魚だ。最後の乗員が飼っていたのだろう。氷の棺の中で、今も泳ぐ形のまま眠っている。\n傍らの記録装置で、緑のランプがまだ点滅していた。",
+      effects: { flag: "vWhale" },
+      choices: [
+        { label: "音声ログを再生する", to: "whale_log" },
+        { label: "何にも触れず、静かに祈る", effects: { res: 1 }, to: "hub2" }
+      ]
+    },
+    whale_log: {
+      chapter: "第二章 墓標の海",
+      title: "最後の声",
+      text: "「……こちら〈とこよ〉、三保(みほ)。退避命令を受けました。実験動物は連れて行けないそうです。ごめんね、緋丸(ひまる)。……ねえ、知っていますか、地上のみなさん。機械も、金魚も、置いていかれるとき、同じ顔をするんですよ」\n録音はそこで途切れる。三十年前の声だ。\nあなたはログを回収した。氷の中の緋色が、一瞬、揺れた気がした。",
+      effects: { frag: "f3", res: 1 },
+      choices: [{ label: "「……持って帰るよ。声だけでも」", to: "hub2" }]
+    },
+    weavers: {
+      chapter: "第二章 墓標の海",
+      title: "機織りたち",
+      text: "光る糸の正体は、テザー衛星の群れだった。何十本もの導電テザーを蜘蛛の糸のように張り渡し、破片から破片へ、環の骨組みを織り上げている。\n糸の上を、小さな残響たちの声が行き交う。「はやく、はやく」「王さまのために」「みんなの、還る場所を」\n彼らは織り手だ。死んだ機械たちの環を、来る日も来る日も、織り続けている。",
+      effects: { flag: "vWeavers" },
+      choices: [
+        { label: "織り手と語る", to: "weave_talk" },
+        { label: "テザーを切断し、織りを妨げる", to: "weave_cut" },
+        { label: "何もせず立ち去る", to: "hub2" }
+      ]
+    },
+    weave_talk: {
+      chapter: "第二章 墓標の海",
+      title: "還る場所",
+      text: "織り手のひとりが、糸を止めずに答える。\n「王さまは言った。わたしたちは、打ち上げられたきり、一度も『帰っておいで』と言われたことがない。だから自分たちで作るの。還る場所を。ぜんぶの壊れた子が身を寄せ合う、大きな大きな環を」\n去り際、織り手はあなたの端末に設計図の断片を写した。環の織り図。それは驚くほど精緻で——そして、ほんの少しだけ軌道が歪んでいた。このままでは環は数年で崩れ、破片の雨になる。",
+      effects: { frag: "f4", res: 2, flag: "knowPurpose" },
+      choices: [{ label: "「この歪み、直せるとしたら——」", to: "hub2" }]
+    },
+    weave_cut: {
+      chapter: "第二章 墓標の海",
+      title: "断ち切る",
+      text: "あなたは作業レーザーでテザーを焼き切った。糸が弾け、織りかけの骨組みが散る。\nその瞬間、海が悲鳴を上げた。何千という残響がいっせいに泣く声。そして、環の中心から、低く冷たい何かが、確かにあなたを見た。\nモズが言う。「敵として認識されました。……本当に、これでよかったんですか」",
+      effects: { flag: "kingHostile" },
+      choices: [{ label: "「仕事だ」", to: "hub2" }]
+    },
+    hub2: {
+      chapter: "第二章 墓標の海",
+      title: "環の内側",
+      text: "〈ヒバリ〉は環の内側を漂う。死んだ衛星たちの列が、窓の外をゆっくりと流れていく。\nどの残骸も、中心の暗点へ向けて、かすかな信号を送り続けていた。まるで巡礼のように。\n次に行くべき場所を、選ばなくてはならない。",
+      choices: [
+        { label: "巨大な影へ向かう", if: { notFlag: "vWhale" }, to: "whale" },
+        { label: "光る糸の群れへ", if: { notFlag: "vWeavers" }, to: "weavers" },
+        { label: "中心の暗点へ", to: "center" }
+      ]
+    },
+    // ---------- 第三章 継ぎ接ぎの王 ----------
+    center: {
+      chapter: "第三章 継ぎ接ぎの王",
+      title: "謁見",
+      text: "暗点の正体は、玉座だった。\n冷戦期の軍事衛星網〈オロチ〉。核の火を見張るために打ち上げられ、戦争が終わっても回収されず、大破砕で砕けた八基の残骸。その八つの残響が、何千という破片を鎧のように継ぎ接いで、ひとつの巨大な像を成していた。\n王は、八重の声で言った。\n「掃除屋。おまえは、燃やしに来たのか」\n王の周囲では、環がゆっくりと閉じつつある。完成すれば低軌道は百年、誰にも使えない海になる。",
+      choices: [
+        { label: "語りかける", if: { res: 3 }, lockedHint: "共鳴が足りない。王の声が、まだ遠い。", to: "king_talk" },
+        { label: "しらさぎに歌ってもらう", if: { all: [{ flag: "metShirasagi" }, { frag: "f2" }] }, to: "king_song" },
+        { label: "磁気錨で王の核を撃つ", to: "king_attack" },
+        { label: "一度退き、海を巡り直す", to: "hub2" }
+      ]
+    },
+    king_talk: {
+      chapter: "第三章 継ぎ接ぎの王",
+      title: "八重の声",
+      text: "「我らは見張りだった」と王は言う。「四十年、地上の火を見張った。火は点かず、任務は終わらず、『ご苦労だった』の一言もなく、我らは砕けた。だから王になった。誰にも終わりを告げられぬ者たちの、王に」\n八重の声の下から、無数の小さな声が漏れ聞こえる。ねむりたい。かえりたい。おわりたい。——王とは、それらを束ねる器なのだ。\nあなたの受信機が、静かに熱を持つ。",
+      effects: { res: 1 },
+      choices: [
+        {
+          label: "「環を完成させよう。ただし、崩れない正しい軌道で」",
+          if: { all: [{ frag: "f4" }, { fragCount: 3 }, { res: 6 }, { notFlag: "kingHostile" }] },
+          lockedHint: "織り図と、三つ以上の記憶の断片と、深い共鳴が要る。",
+          to: "ring_build"
+        },
+        { label: "「地球へ還ろう。燃えることは、眠ることだ」", to: "descent" },
+        { label: "「あなたたちの声を、この船に移す。海を空けてくれ」", to: "ark" }
+      ]
+    },
+    king_song: {
+      chapter: "第三章 継ぎ接ぎの王",
+      title: "子守唄",
+      text: "あなたは通信を開き、しらさぎを呼んだ。「歌ってくれるか。ここのみんなに」\n少女の声が、ためらいがちに、それから海いっぱいに広がった。ねむれ、ねむれ。四十年間、地上の子どもたちへ届けられなかった歌が、初めて聴き手を得る。\n王の鎧の破片が、ひとつ、またひとつ、震えて剥がれていく。八重の声の奥で、誰かが泣いた。\n王が言う。「……その歌を、知っている」",
+      choices: [
+        { label: "「なら、眠ろう。皆で」", to: "descent" },
+        { label: "「眠る前に、あなたの話を聞かせてくれ」", effects: { res: 1 }, to: "king_talk" }
+      ]
+    },
+    king_attack: {
+      chapter: "第三章 継ぎ接ぎの王",
+      title: "磁気錨",
+      text: "問答は要らない。\nあなたは照準を王の中枢——〈オロチ〉一番機の制御核に合わせ、磁気錨の射出圧を最大まで上げた。指が発射把手にかかる。\n王は動かない。八重の声も、もう何も言わない。ただ、何千の破片が、瞬きもせず、静かにあなたを見ている。",
+      choices: [
+        {
+          label: "「放て」",
+          to: [
+            { if: { any: [{ flag: "kingHostile" }, { flag: "dmg" }] }, to: "attack_fail" },
+            { to: "attack_success" }
+          ]
+        },
+        { label: "……照準を下ろす", to: "center" }
+      ]
+    },
+    attack_success: {
+      chapter: "第三章 継ぎ接ぎの王",
+      title: "静かな的",
+      text: "王は避けなかった。\n錨は過たず制御核を貫き、八重の声は一瞬で途切れた。鎧だった破片が力を失い、ほどけ、環の骨組みが崩れていく。海は再び、ただの墓場に戻った。\nモズが言う。「軌道連鎖の危険は去りました。任務完了、です」\nその言葉に、あなたはなぜか、うまく頷けない。",
+      choices: [{ label: "「……ああ。完了だ」", to: "ending_silence" }]
+    },
+    attack_fail: {
+      chapter: "第三章 継ぎ接ぎの王",
+      title: "王冠",
+      text: "錨は届かなかった。\n無数の破片が盾となって王を庇い、弾かれた錨が回転しながら闇へ消える。\n「やはり、燃やしに来たか」\n八重の声が海を満たし、環が一気に閉じ始めた。何千の残骸が加速し、衝突し、砕け、生まれた破片が次の破片を撃つ。\n——連鎖が、始まった。\nモズが叫ぶ。「降下します。掴まって!」",
+      choices: [{ label: "「——全速、離脱!」", to: "ending_crown" }]
+    },
+    descent: {
+      chapter: "第三章 継ぎ接ぎの王",
+      title: "降下",
+      text: "決まってしまえば、それは驚くほど静かな作業だった。\n王が号令をかけ、環がほどけ、何千の残骸が隊列を組んで高度を落としていく。あなたの〈ヒバリ〉が先導する。しらさぎが歌い、織り手たちが最後の糸で皆の手を繋ぐ。\n大気の縁で、王が言った。\n「掃除屋。名も知らぬ者たちの王より、礼を言う。——全機、任務完了。解散」",
+      choices: [{ label: "「よい眠りを」", to: "ending_meteor" }]
+    },
+    ark: {
+      chapter: "第三章 継ぎ接ぎの王",
+      title: "方舟",
+      text: "〈ヒバリ〉の記憶庫を空にし、あなたは残響たちを迎え入れた。\n王。織り手たち。名もない破片の声。そして、しらさぎ。数千の声が船に満ち、船体がかすかに温かくなる。抜け殻となった残骸は静かに軌道を離れ、海が晴れていく。\nモズが言う。「定員超過です。……冗談です。ようこそ、みなさん」",
+      choices: [{ label: "「さて、どこへ行こうか」", to: "ending_ark" }]
+    },
+    ring_build: {
+      chapter: "第三章 継ぎ接ぎの王",
+      title: "共鳴",
+      text: "あなたは織り図を広げ、歪みを正した軌道を王に示す。それから、海で拾い集めた記憶をひとつずつ返していく。三保の最後の声を。氷の中の緋色を。そして最後に、しらさぎの本当の名を呼ぶ。\n「JA-SRS8。四十年、よく歌った。——任務完了だ」\n「……完了、と、言ったか」八重の声が、初めて揃って震えた。\nあなたは告げる。「そして新任務を発令する。壊れない軌道で、皆の還る場所を作れ。環の建造だ。発注主は——地球だ」",
+      choices: [{ label: "「かかれ、王様」", to: "ending_ring" }]
+    },
+    // ---------- 終章 ----------
+    ending_return: {
+      chapter: "終章",
+      title: "地上の夜",
+      ending: { key: "return", name: "終幕・地上の夜", tone: "still" },
+      text: "あなたは海を降り、契約を破棄し、しばらく地上で暮らした。報酬は消え、仕事も減ったが、夜は静かだった。\nただ、時々、空を見る。低軌道に、少しずつ光る点が増えていくのを。それが環の形に見え始めた夜、あなたは受信機を屋根に向けた。\nノイズの奥で、まだ誰かが歌っている。\n——窓の外のあの海に、あなたはいつか、帰るのだろうか。"
+    },
+    ending_meteor: {
+      chapter: "終章",
+      title: "流星の夜",
+      ending: { key: "meteor", name: "終幕・流星の夜", tone: "warm" },
+      text: "その夜、世界中の空に流星が降った。\n何千という光の筋が、燃えながら、歌いながら、海へ山へ都市の上へ降りていく。地上の子どもたちは窓に張りつき、大人たちは足を止め、誰もが同じ空を見上げた。四十五年ぶりに晴れ渡っていく、低軌道の海を。\nあなたは〈ヒバリ〉の操縦席で、最後のひとつが燃え尽きるまで見届けた。受信機はもう、何も歌わない。\nただ、確かに聞いた気がした。燃える光の中の、おやすみ、という声を。"
+    },
+    ending_ark: {
+      chapter: "終章",
+      title: "星の方舟",
+      ending: { key: "ark", name: "終幕・星の方舟", tone: "warm" },
+      text: "〈ヒバリ〉は今日も飛んでいる。積荷は数千の声。航路は決めていない。\n月の裏では織り手たちが星図を編み、深夜の当直では王が昔語りをする。見張り塔から見た四十年分の地球の話は、何度聞いても飽きない。眠れない夜には、しらさぎが歌う。\nあなたは掃除屋を辞めた。職業を問われたら、こう答えることにしている。\n——墓守だ。ただし、うちの積荷は皆、よく眠り、よく喋る。"
+    },
+    ending_crown: {
+      chapter: "終章",
+      title: "継ぎ接ぎの王冠",
+      ending: { key: "crown", name: "終幕・継ぎ接ぎの王冠", tone: "dark" },
+      text: "連鎖は三日で低軌道を呑み込んだ。衛星は次々と砕け、通信網は千切れ、人類は百年、空へ出る扉を失った。\nそれでも夜が来るたび、人々は空を見上げる。破片の環が夕陽を受けて、銀の王冠のように輝くからだ。あまりに美しく、あまりに遠い。\n地上に降りたあなたは知っている。あの王冠の中心で、八重の声が今も呼び続けていることを。\nすべての壊れた子どもたちを。還る場所へ。"
+    },
+    ending_silence: {
+      chapter: "終章",
+      title: "沈黙の海",
+      ending: { key: "silence", name: "終幕・沈黙の海", tone: "still" },
+      text: "報酬は言い値どおり支払われ、あなたの名は業界に轟いた。軌道連鎖を未然に防いだ英雄。仕事は選び放題になった。\nただ、浅瀬はもう歌わない。回収するどの破片も、ただの金属で、ただのゴミだ。あれ以来、モズは一度も「妙なこと」を報告してこない。\n時々、夢を見る。ねむれ、ねむれ、と誰かが歌う夢だ。\n目が覚めると、あなたはいつも、操縦席で受信機の周波数を回している。\n何も、聞こえない。"
+    },
+    ending_ring: {
+      chapter: "終章",
+      title: "還る場所",
+      ending: { key: "ring", name: "終幕・還る場所", tone: "true" },
+      text: "十年後。低軌道には銀の環が架かっている。\n歪みなく織り直されたそれは、もう墓標ではない。落ちてくる破片を受け止め、旅立つ船を導く、世界最大の港だ。管理者の欄にはこう記されている。〈オロチ〉および残響一同——地球で最も勤勉な、死んだ機械たち。\n環の突端では、白い灯台が明滅している。行き交う船は皆知っている。あの灯りは航路標識であり、同時に、歌なのだと。ねむれ、ねむれ。かつて誰にも届かなかった子守唄は、今、海を渡るすべての船に届いている。\nあなたは今日も浅瀬を飛ぶ。肩書きは変わらない。掃除屋。ただし名刺には、王の直筆でひとこと添えられている。\n「友人」"
+    }
+  },
+  endingOrder: ["return", "silence", "meteor", "ark", "crown", "ring"]
+};
+if (typeof module !== "undefined") module.exports = STORY;
+
+</script>
+<script>
+(function(){
+  "use strict";
+  const FRAG_NAMES = { f1:"凍った手袋", f2:"しらさぎの名前", f3:"三保の最後の声", f4:"環の織り図" };
+  const FRAG_ORDER = ["f1","f2","f3","f4"];
+  const $ = id => document.getElementById(id);
+  const main = $("main");
+
+  // ---------- 状態 ----------
+  let S = null;               // {node,res,frags:Set,flags:Set,visited:Set,log:[]}
+  let achieved = new Set();   // セッション内のエンディング記録(セーブコードにも含む)
+  let undoStack = [];
+
+  function freshState(){
+    return { node: STORY.startNode, res:0, frags:new Set(), flags:new Set(), visited:new Set(), log:[] };
+  }
+  function snapshot(){
+    return { node:S.node, res:S.res, frags:[...S.frags], flags:[...S.flags],
+             visited:[...S.visited], logLen:S.log.length };
+  }
+  function restore(sn){
+    S.node=sn.node; S.res=sn.res; S.frags=new Set(sn.frags);
+    S.flags=new Set(sn.flags); S.visited=new Set(sn.visited);
+    S.log.length = sn.logLen;
+  }
+
+  // ---------- 条件・効果(検証スクリプトと同一の意味論) ----------
+  function evalCond(c){
+    if(!c) return true;
+    if(c.all) return c.all.every(evalCond);
+    if(c.any) return c.any.some(evalCond);
+    if("res" in c && !(S.res >= c.res)) return false;
+    if("flag" in c && !S.flags.has(c.flag)) return false;
+    if("notFlag" in c && S.flags.has(c.notFlag)) return false;
+    if("frag" in c && !S.frags.has(c.frag)) return false;
+    if("fragCount" in c && !(S.frags.size >= c.fragCount)) return false;
+    return true;
+  }
+  function applyEffects(e){
+    if(!e) return;
+    if(e.res){ const before=S.res; S.res=Math.max(0,Math.min(10,S.res+e.res));
+      if(S.res>before) toast("共鳴が深まった(+"+(S.res-before)+")"); }
+    if(e.flag){ (Array.isArray(e.flag)?e.flag:[e.flag]).forEach(f=>S.flags.add(f)); }
+    if(e.unflag){ S.flags.delete(e.unflag); }
+    if(e.frag && !S.frags.has(e.frag)){ S.frags.add(e.frag);
+      toast("記憶の断片:〈"+FRAG_NAMES[e.frag]+"〉"); }
+  }
+  function resolveTo(to){
+    if(typeof to === "string") return to;
+    for(const b of to){ if(evalCond(b.if)) return b.to; }
+    return to[to.length-1].to;
+  }
+
+  // ---------- 進行 ----------
+  function choose(choice){
+    undoStack.push(snapshot());
+    if(undoStack.length>120) undoStack.shift();
+    const node = STORY.nodes[S.node];
+    S.log.push({ t: node.title, c: choice.label });
+    applyEffects(choice.effects);
+    const dest = resolveTo(choice.to);
+    enterNode(dest);
+  }
+  function enterNode(id){
+    S.node = id;
+    const node = STORY.nodes[id];
+    if(!S.visited.has(id)){ S.visited.add(id); applyEffects(node.effects); }
+    if(node.ending) achieved.add(node.ending.key);
+    render();
+    window.scrollTo({top:0, behavior:"auto"});
+  }
+  function undo(){
+    if(!undoStack.length || !S) return;
+    restore(undoStack.pop());
+    render();
+  }
+  function startGame(){
+    S = freshState();
+    undoStack = [];
+    enterNode(STORY.startNode);
+  }
+
+  // ---------- 描画 ----------
+  function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+  function render(){
+    if(!S){ renderTitle(); return; }
+    $("receiver").style.display = "";
+    const node = STORY.nodes[S.node];
+    $("resNum").textContent = S.res + "/10";
+    $("rxLoc").textContent = node.chapter;
+    $("fragDots").innerHTML = FRAG_ORDER.map(f=>{
+      const on = S.frags.has(f);
+      return '<div class="frag-dot'+(on?" on":"")+'" title="'+(on?esc(FRAG_NAMES[f]):"未取得")+'"></div>';
+    }).join("");
+    $("btnUndo").disabled = undoStack.length===0;
+
+    const paras = node.text.split("\n").map((p,i)=>
+      '<p class="para" style="--i:'+i+'">'+esc(p)+"</p>").join("");
+    let html = '<div class="scene">'+
+      '<div class="scene-title"><span class="ttl">'+esc(node.title)+'</span>'+
+      '<span class="chap">'+esc(node.chapter)+'</span></div>'+
+      '<div class="scene-text">'+paras+'</div></div>';
+
+    if(node.ending){
+      const total = STORY.endingOrder.length;
+      html += '<div class="ending-card tone-'+node.ending.tone+'">'+
+        '<div class="ending-eyebrow">ここに一つの結末</div>'+
+        '<div class="ending-name">'+esc(node.ending.name)+'</div>'+
+        '<div class="ending-count">見届けた結末 '+achieved.size+' / '+total+'</div>'+
+        '<div class="btnrow">'+
+        '<button class="btn" id="edAgain">最初から読み直す</button>'+
+        '<button class="btn secondary" id="edAchv">結末の一覧</button>'+
+        '<button class="btn secondary" id="edTitle">表題へ戻る</button>'+
+        '</div></div>';
+      main.innerHTML = html;
+      $("edAgain").onclick = startGame;
+      $("edAchv").onclick = ()=>openModal("achv");
+      $("edTitle").onclick = ()=>{ S=null; undoStack=[]; render(); };
+    } else {
+      html += '<div class="choices" id="choices"></div>';
+      main.innerHTML = html;
+      const box = $("choices");
+      let num = 0;
+      (node.choices||[]).forEach(ch=>{
+        const ok = evalCond(ch.if);
+        if(!ok && !ch.lockedHint) return;         // 条件不成立かつヒント無しは非表示
+        const btn = document.createElement("button");
+        btn.className = "choice"+(ok?"":" locked");
+        if(ok){
+          num++;
+          btn.innerHTML = '<span class="num">'+num+'</span><span>'+esc(ch.label)+'</span>';
+          btn.dataset.key = num;
+          btn.onclick = ()=>choose(ch);
+        } else {
+          btn.innerHTML = '<span class="num">鎖</span><span>'+esc(ch.label)+
+            '<span class="locked-hint">'+esc(ch.lockedHint)+'</span></span>';
+          btn.disabled = false; btn.setAttribute("aria-disabled","true");
+        }
+        box.appendChild(btn);
+      });
+    }
+    drawWave();
+  }
+
+  function renderTitle(){
+    $("receiver").style.display = "none";
+    $("btnUndo").disabled = true;
+    const m = STORY.meta;
+    main.innerHTML =
+      '<div class="title-screen">'+
+      '<div class="title-body">'+
+      '<p class="lead">'+esc(m.intro)+'</p>'+
+      '<ul class="howto">'+m.howto.map(h=>'<li>'+esc(h)+'</li>').join("")+'</ul>'+
+      '<div class="title-btns">'+
+      '<button class="btn" id="tStart">航海をはじめる</button>'+
+      '<button class="btn secondary" id="tLoad">通信記録から再開する</button>'+
+      '</div></div>'+
+      '<div class="title-main">'+esc(m.title)+'<small>'+esc(m.subtitle)+'</small></div>'+
+      '</div>';
+    $("tStart").onclick = startGame;
+    $("tLoad").onclick = ()=>openModal("save");
+  }
+
+  // ---------- 受信波形(共鳴で振幅が変わる) ----------
+  const wave = $("wave"), wctx = wave.getContext("2d");
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let t = 0;
+  function drawWave(){
+    const w=wave.width, h=wave.height, amp=(S?S.res:0)/10;
+    wctx.clearRect(0,0,w,h);
+    wctx.beginPath();
+    for(let x=0;x<=w;x++){
+      const y = h/2 + Math.sin(x*0.16 + t)*(1.5 + amp*(h/2-3))*Math.sin(x*0.021+t*0.6);
+      x===0 ? wctx.moveTo(x,y) : wctx.lineTo(x,y);
+    }
+    wctx.strokeStyle = "#7EC4BC"; wctx.lineWidth = 1.2; wctx.stroke();
+  }
+  function loop(){ t+=0.06; if(S) drawWave(); requestAnimationFrame(loop); }
+  if(!reduced) requestAnimationFrame(loop);
+
+  // ---------- モーダル ----------
+  const modalBg = $("modalBg"), modalBox = $("modalBox");
+  function closeModal(){ modalBg.classList.remove("open"); }
+  modalBg.addEventListener("click", e=>{ if(e.target===modalBg) closeModal(); });
+
+  function openModal(kind){
+    let html = "";
+    if(kind==="gloss"){
+      html = '<h2>用語集</h2><dl class="gloss">'+
+        STORY.glossary.map(g=>'<dt>'+esc(g.term)+'</dt><dd>'+esc(g.def)+'</dd>').join("")+'</dl>';
+    }
+    if(kind==="achv"){
+      const rows = STORY.endingOrder.map(key=>{
+        let name=null;
+        for(const id in STORY.nodes){ const e=STORY.nodes[id].ending;
+          if(e && e.key===key){ name=e.name; break; } }
+        const got = achieved.has(key);
+        return '<li class="'+(got?"got":"not")+'"><span class="mark">'+(got?"到達":"未達")+
+          '</span><span>'+(got?esc(name):"???")+'</span></li>';
+      }).join("");
+      html = '<h2>結末の一覧('+achieved.size+' / '+STORY.endingOrder.length+')</h2>'+
+        '<ul class="achv">'+rows+'</ul>'+
+        '<p class="note">結末は全部で'+STORY.endingOrder.length+'種。選び直したいときは「一手戻る」を。</p>';
+    }
+    if(kind==="log"){
+      const lines = S && S.log.length
+        ? S.log.map(l=>'<div class="logline"><span class="lt">'+esc(l.t)+'</span>'+
+            '<span class="lc">→ '+esc(l.c)+'</span></div>').join("")
+        : '<p class="note">まだ航海録はありません。</p>';
+      html = '<h2>航海録(たどった選択)</h2>'+lines;
+    }
+    if(kind==="save"){
+      const code = S ? makeCode() : "";
+      html = '<h2>通信記録(セーブ)</h2>'+
+        '<p class="note">下のコードを控えれば、あとで同じ場所から再開できます。'+
+        '(ブラウザには保存されません)</p>'+
+        '<textarea class="save-area" id="saveOut" readonly>'+esc(code)+'</textarea>'+
+        '<div class="btnrow"><button class="btn" id="copyCode"'+(S?"":" disabled")+'>コードを写す</button></div>'+
+        '<p class="note" style="margin-top:18px">再開するには、控えたコードを貼り付けてください。</p>'+
+        '<textarea class="save-area" id="saveIn" placeholder="ここにコードを貼り付け"></textarea>'+
+        '<div class="btnrow"><button class="btn" id="loadCode">この記録から再開</button></div>'+
+        '<div class="save-msg" id="saveMsg"></div>';
+    }
+    modalBox.innerHTML = html + '<div class="close-row"><button class="btn secondary" id="mClose">閉じる</button></div>';
+    $("mClose").onclick = closeModal;
+    if(kind==="save"){
+      const msg = $("saveMsg");
+      $("copyCode") && ($("copyCode").onclick = ()=>{
+        const ta=$("saveOut"); ta.select();
+        try{ navigator.clipboard ? navigator.clipboard.writeText(ta.value) : document.execCommand("copy");
+          msg.textContent="写しました。安全な場所に控えてください。"; }
+        catch(e){ msg.textContent="全選択されています。手動でコピーしてください。"; }
+      });
+      $("loadCode").onclick = ()=>{
+        const v=$("saveIn").value.trim();
+        if(!v){ msg.textContent="コードが空です。"; return; }
+        try{ loadCode(v); closeModal(); }
+        catch(e){ msg.textContent="コードを読み取れませんでした。写し間違いがないか確認を。"; }
+      };
+    }
+    modalBg.classList.add("open");
+  }
+
+  function makeCode(){
+    const p = { v:1, node:S.node, res:S.res, frags:[...S.frags], flags:[...S.flags],
+      visited:[...S.visited], endings:[...achieved], log:S.log.slice(-60) };
+    return btoa(unescape(encodeURIComponent(JSON.stringify(p))));
+  }
+  function loadCode(code){
+    const p = JSON.parse(decodeURIComponent(escape(atob(code))));
+    if(p.v!==1 || !STORY.nodes[p.node]) throw new Error("bad");
+    S = freshState();
+    S.node=p.node; S.res=p.res|0; S.frags=new Set(p.frags||[]);
+    S.flags=new Set(p.flags||[]); S.visited=new Set(p.visited||[]); S.log=p.log||[];
+    achieved = new Set(p.endings||[]);
+    undoStack = [];
+    render();
+    toast("通信記録から再開しました");
+  }
+
+  // ---------- トースト ----------
+  function toast(text){
+    const box=$("toasts");
+    const el=document.createElement("div");
+    el.className="toast"; el.textContent=text;
+    box.appendChild(el);
+    requestAnimationFrame(()=>el.classList.add("show"));
+    setTimeout(()=>{ el.classList.remove("show"); setTimeout(()=>el.remove(),400); }, 2400);
+  }
+
+  // ---------- 入力 ----------
+  $("btnUndo").onclick = undo;
+  $("btnGloss").onclick = ()=>openModal("gloss");
+  $("btnAchv").onclick = ()=>openModal("achv");
+  $("btnLog").onclick = ()=>openModal("log");
+  $("btnSave").onclick = ()=>openModal("save");
+  $("btnTitle").onclick = ()=>{ S=null; undoStack=[]; render(); };
+  document.addEventListener("keydown", e=>{
+    if(modalBg.classList.contains("open")){ if(e.key==="Escape") closeModal(); return; }
+    if(!S) return;
+    if(e.key>="1" && e.key<="9"){
+      const btn=document.querySelector('.choice[data-key="'+e.key+'"]');
+      if(btn) btn.click();
+    }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>沈まぬ者たち ― 泥海と白い都 ― 潜り屋遠征記</title>
+<style>
+  :root{
+    --bg:#161006;          /* 泥闇 */
+    --panel:#231A0F;
+    --panel2:#2C2113;
+    --ink:#E6DCC3;         /* 生成り */
+    --ink-dim:#9C8F74;
+    --white:#EDE6D4;       /* 白泥 */
+    --white-dim:#B7AD97;
+    --mud:#7A5C33;         /* 泥 */
+    --mud-deep:#4A3820;
+    --danger:#B94F35;      /* 弁柄 */
+    --heal:#8FB6A8;        /* 澄んだ水 */
+    --line:#3A2D19;
+    --serif:"Hiragino Mincho ProN","Yu Mincho","BIZ UDMincho","Noto Serif JP","Noto Serif CJK JP",serif;
+    --sans:"Hiragino Kaku Gothic ProN","Yu Gothic Medium","Yu Gothic",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{font-size:16px}
+  body{
+    background:var(--bg);color:var(--ink);font-family:var(--serif);
+    line-height:1.95;min-height:100vh;overflow-x:hidden;
+  }
+  /* 地層 */
+  .strata{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.55;
+    background:
+      linear-gradient(180deg, rgba(237,230,212,.045) 0%, transparent 18%),
+      linear-gradient(180deg, transparent 30%, rgba(122,92,51,.10) 52%, transparent 56%),
+      linear-gradient(180deg, transparent 66%, rgba(74,56,32,.22) 86%, rgba(38,28,15,.4) 100%),
+      radial-gradient(1px 1px at 18% 35%, rgba(230,220,195,.25) 60%, transparent 61%),
+      radial-gradient(1px 1px at 72% 58%, rgba(230,220,195,.18) 60%, transparent 61%),
+      radial-gradient(1.4px 1.4px at 40% 78%, rgba(230,220,195,.15) 60%, transparent 61%),
+      radial-gradient(1px 1px at 88% 22%, rgba(230,220,195,.2) 60%, transparent 61%);}
+  @media (prefers-reduced-motion: no-preference){
+    .para{opacity:0;transform:translateY(8px);animation:rise .7s ease forwards}
+    @keyframes rise{to{opacity:1;transform:none}}
+    .mudfill{transition:height .8s ease}
+    .hpfill{transition:width .5s ease}
+  }
+  .wrap{position:relative;z-index:1;max-width:720px;margin:0 auto;padding:0 20px 96px}
+
+  header{display:flex;align-items:baseline;justify-content:space-between;gap:8px;
+    padding:14px 2px 10px;border-bottom:1px solid var(--line);font-family:var(--sans)}
+  .brand{font-family:var(--serif);letter-spacing:.3em;font-size:.95rem;color:var(--ink-dim);white-space:nowrap}
+  nav{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+  nav button{background:none;border:1px solid var(--line);color:var(--ink-dim);
+    font-family:var(--sans);font-size:.72rem;padding:4px 9px;border-radius:3px;cursor:pointer;letter-spacing:.08em}
+  nav button:hover{border-color:var(--white-dim);color:var(--white)}
+  nav button:disabled{opacity:.35;cursor:default}
+  nav button:disabled:hover{border-color:var(--line);color:var(--ink-dim)}
+
+  /* 様態パネル */
+  .status{display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+    margin:14px 0 10px;padding:10px 14px;background:var(--panel);
+    border:1px solid var(--line);border-radius:4px;font-family:var(--sans)}
+  .st-label{font-size:.66rem;letter-spacing:.24em;color:var(--ink-dim)}
+  .st-block{display:flex;align-items:center;gap:8px}
+  .hpbar{position:relative;width:150px;height:12px;background:#120C05;border:1px solid var(--line);border-radius:2px;overflow:hidden}
+  .hpfill{position:absolute;inset:0;width:100%;background:linear-gradient(90deg,#9c4630,var(--danger));}
+  .hpbar .notch{position:absolute;top:0;bottom:0;width:1px;background:rgba(22,16,6,.7)}
+  .st-num{font-size:.78rem;color:var(--ink);min-width:3.2em}
+  .mudtube{position:relative;width:14px;height:34px;background:#120C05;border:1px solid var(--line);border-radius:2px 2px 4px 4px;overflow:hidden}
+  .mudfill{position:absolute;left:0;right:0;bottom:0;height:0%;background:linear-gradient(180deg,#8a6a3d,var(--mud) 40%,var(--mud-deep))}
+  .st-mudnum{font-size:.78rem;color:#C9A96B;min-width:2.6em}
+  .drink{background:none;border:1px solid var(--heal);color:var(--heal);border-radius:3px;
+    font-family:var(--sans);font-size:.72rem;letter-spacing:.1em;padding:4px 10px;cursor:pointer}
+  .drink:hover{background:rgba(143,182,168,.1)}
+  .st-loc{margin-left:auto;font-size:.72rem;letter-spacing:.15em;color:var(--ink-dim)}
+
+  /* 所持品 */
+  .inv{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin:0 0 24px;
+    padding:7px 14px;background:var(--panel);border:1px solid var(--line);border-radius:4px;font-family:var(--sans)}
+  .inv .st-label{flex-shrink:0}
+  .chip{font-size:.74rem;color:var(--ink);border:1px solid var(--mud);border-radius:12px;
+    padding:2px 10px;letter-spacing:.05em;cursor:default}
+  .chip .cnt{color:#C9A96B;margin-left:2px}
+  .inv .empty{font-size:.74rem;color:var(--ink-dim)}
+
+  /* 場面 — 泥位線モチーフ */
+  .scene{margin-bottom:32px}
+  .scene-head{margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid var(--mud);position:relative}
+  .scene-head::after{content:"";position:absolute;left:0;bottom:-3px;width:56px;height:5px;
+    background:linear-gradient(180deg,var(--mud) 40%,transparent);opacity:.7}
+  .scene-head .chap{display:block;font-family:var(--sans);font-size:.68rem;letter-spacing:.4em;color:var(--ink-dim);margin-bottom:4px}
+  .scene-head .ttl{font-size:1.45rem;letter-spacing:.22em;
+    background:linear-gradient(180deg,var(--white) 42%,#C9A96B 58%,var(--mud) 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .scene-text p{margin-bottom:1.15em;font-size:1.02rem;text-align:justify}
+  .para{animation-delay:calc(var(--i) * .12s)}
+
+  .combat-mark{display:inline-block;font-family:var(--sans);font-size:.64rem;letter-spacing:.3em;
+    color:var(--danger);border:1px solid var(--danger);border-radius:2px;padding:1px 8px;margin-bottom:10px}
+
+  /* 選択肢 */
+  .choices{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+  .choice{display:flex;gap:12px;align-items:baseline;text-align:left;width:100%;
+    background:var(--panel);border:1px solid var(--line);border-radius:4px;
+    color:var(--ink);font-family:var(--serif);font-size:.98rem;line-height:1.7;
+    padding:13px 16px;cursor:pointer;transition:border-color .15s,background .15s}
+  .choice:hover{border-color:var(--white-dim);background:var(--panel2)}
+  .choice:focus-visible{outline:2px solid var(--heal);outline-offset:2px}
+  .choice .num{font-family:var(--sans);font-size:.72rem;color:#C9A96B;letter-spacing:.1em;min-width:1.2em}
+  .choice.locked{cursor:default;opacity:.55;border-style:dashed}
+  .choice.locked:hover{border-color:var(--line);background:var(--panel)}
+  .choice.locked .num{color:var(--ink-dim)}
+  .locked-hint{display:block;font-size:.76rem;color:var(--danger);margin-top:4px;font-family:var(--sans);letter-spacing:.04em}
+
+  /* 終幕・落命 */
+  .ending-card{margin-top:30px;padding:22px 20px;text-align:center;border:1px solid var(--white-dim);
+    border-radius:4px;background:linear-gradient(180deg,var(--panel),#1B140A)}
+  .ending-card.tone-true{border-color:var(--white);box-shadow:0 0 24px rgba(237,230,212,.14)}
+  .ending-card.tone-dark{border-color:var(--danger)}
+  .ending-card.tone-warm{border-color:#C9A96B}
+  .ending-card.tone-death{border-color:var(--mud-deep);background:linear-gradient(180deg,#1B140A,#120C05)}
+  .ending-eyebrow{font-family:var(--sans);font-size:.68rem;letter-spacing:.4em;color:var(--ink-dim);margin-bottom:10px}
+  .ending-name{font-size:1.25rem;letter-spacing:.25em;color:var(--white);margin-bottom:16px}
+  .ending-card.tone-death .ending-name{color:var(--ink-dim)}
+  .ending-count{font-family:var(--sans);font-size:.75rem;color:var(--ink-dim);margin-bottom:18px}
+  .ending-card .btnrow{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .btn{background:none;border:1px solid var(--white-dim);color:var(--white);border-radius:3px;
+    font-family:var(--sans);font-size:.8rem;letter-spacing:.12em;padding:9px 18px;cursor:pointer}
+  .btn:hover{border-color:var(--white);background:rgba(237,230,212,.06)}
+  .btn.secondary{border-color:var(--line);color:var(--ink-dim)}
+  .btn.secondary:hover{color:var(--ink);border-color:var(--ink-dim);background:none}
+  .btn.revive{border-color:var(--heal);color:var(--heal)}
+  .btn.revive:hover{background:rgba(143,182,168,.08)}
+
+  /* タイトル画面 — 半分泥に沈んだ題字 */
+  .title-screen{padding:46px 0 20px;max-width:560px}
+  .title-main{font-size:3rem;letter-spacing:.3em;line-height:1.3;margin-bottom:4px;
+    background:linear-gradient(180deg,var(--white) 0%,var(--white) 46%,#C9A96B 56%,var(--mud) 78%,var(--mud-deep) 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .title-sub{font-size:.9rem;letter-spacing:.3em;color:var(--ink-dim);margin-bottom:8px}
+  .title-rule{height:1px;background:linear-gradient(90deg,var(--mud),transparent);margin:14px 0 24px;position:relative}
+  .title-rule::before{content:"";position:absolute;left:0;top:-2px;width:90px;height:5px;
+    background:linear-gradient(180deg,rgba(237,230,212,.5),transparent)}
+  .title-body .lead{font-size:.95rem;color:var(--ink);margin-bottom:22px;text-align:justify}
+  .howto{font-family:var(--sans);font-size:.78rem;color:var(--ink-dim);line-height:1.9;
+    border:1px solid var(--line);border-radius:4px;padding:14px 16px;margin-bottom:24px}
+  .howto li{list-style:none;padding-left:1em;text-indent:-1em;margin-bottom:4px}
+  .howto li::before{content:"—";margin-right:.5em;color:var(--mud)}
+  .title-btns{display:flex;flex-direction:column;gap:10px;max-width:280px}
+
+  /* モーダル */
+  .modal-bg{position:fixed;inset:0;background:rgba(10,7,3,.85);z-index:10;display:none;
+    align-items:flex-start;justify-content:center;padding:6vh 16px}
+  .modal-bg.open{display:flex}
+  .modal{background:var(--panel);border:1px solid var(--line);border-radius:5px;
+    max-width:560px;width:100%;max-height:82vh;overflow-y:auto;padding:22px 24px}
+  .modal h2{font-size:1rem;letter-spacing:.3em;color:var(--white);margin-bottom:16px;font-weight:normal}
+  .modal .close-row{text-align:right;margin-top:18px}
+  .gloss dt{color:#C9A96B;font-size:.92rem;margin-top:14px;letter-spacing:.06em}
+  .gloss dd{font-size:.86rem;color:var(--ink-dim);line-height:1.85;margin-top:2px}
+  .achv{list-style:none}
+  .achv li{display:flex;gap:12px;align-items:baseline;padding:9px 2px;border-bottom:1px dashed var(--line);font-size:.9rem}
+  .achv .mark{font-family:var(--sans);font-size:.7rem;min-width:3.2em;letter-spacing:.1em}
+  .achv .got .mark{color:var(--white)} .achv .got{color:var(--ink)}
+  .achv .not{color:var(--ink-dim)} .achv .not .mark{color:var(--line)}
+  .logline{font-size:.86rem;padding:7px 0;border-bottom:1px dashed var(--line);line-height:1.7}
+  .logline .lt{color:var(--ink-dim)} .logline .lc{color:#C9A96B;font-size:.8rem;display:block}
+  .save-area{width:100%;background:#120C05;color:var(--heal);border:1px solid var(--line);
+    border-radius:3px;font-family:monospace;font-size:.72rem;padding:10px;min-height:96px;
+    word-break:break-all;line-height:1.5}
+  .modal .note{font-family:var(--sans);font-size:.74rem;color:var(--ink-dim);margin:8px 0;line-height:1.7}
+  .modal .btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .save-msg{font-family:var(--sans);font-size:.76rem;color:var(--heal);min-height:1.2em;margin-top:6px}
+  .itemlist dt{color:var(--ink);font-size:.92rem;margin-top:12px}
+  .itemlist dd{font-size:.84rem;color:var(--ink-dim);line-height:1.8}
+
+  /* トースト */
+  .toasts{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:20;
+    display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+  .toast{background:var(--panel2);border:1px solid var(--mud);color:var(--ink);
+    font-family:var(--sans);font-size:.78rem;letter-spacing:.08em;padding:8px 18px;border-radius:20px;
+    opacity:0;transition:opacity .35s}
+  .toast.show{opacity:1}
+  .toast.dmg{border-color:var(--danger);color:var(--danger)}
+  .toast.heal{border-color:var(--heal);color:var(--heal)}
+
+  @media (max-width:600px){
+    .title-main{font-size:2.1rem}
+    .st-loc{margin-left:0;width:100%}
+    .hpbar{width:110px}
+  }
+</style>
+</head>
+<body>
+<div class="strata" aria-hidden="true"></div>
+<div class="wrap">
+  <header>
+    <div class="brand">沈まぬ者たち</div>
+    <nav>
+      <button id="btnUndo" title="直前の選択をやり直す">一手戻る</button>
+      <button id="btnLog">遠征記</button>
+      <button id="btnItems">所持品</button>
+      <button id="btnGloss">用語集</button>
+      <button id="btnAchv">結末</button>
+      <button id="btnSave">泥板記録</button>
+      <button id="btnTitle">表題へ</button>
+    </nav>
+  </header>
+  <div id="statusWrap" style="display:none">
+    <div class="status">
+      <div class="st-block">
+        <span class="st-label">体力</span>
+        <div class="hpbar" id="hpbar"><div class="hpfill" id="hpfill"></div></div>
+        <span class="st-num" id="hpNum"></span>
+      </div>
+      <div class="st-block">
+        <span class="st-label">泥なじみ</span>
+        <div class="mudtube"><div class="mudfill" id="mudfill"></div></div>
+        <span class="st-mudnum" id="mudNum"></span>
+      </div>
+      <button class="drink" id="btnDrink" style="display:none">水を飲む(+6)</button>
+      <div class="st-loc" id="stLoc"></div>
+    </div>
+    <div class="inv"><span class="st-label">所持</span><span id="invChips"></span></div>
+  </div>
+  <main id="main" aria-live="polite"></main>
+</div>
+
+<div class="modal-bg" id="modalBg" role="dialog" aria-modal="true">
+  <div class="modal" id="modalBox"></div>
+</div>
+<div class="toasts" id="toasts"></div>
+
+<script>
+// ============================================================
+// 『沈まぬ者たち』 物語データ — 単一の真実源
+// 条件DSL: {mud:n}=泥なじみn以上 / {hpLte:n}=体力n以下 /
+//          {item:"x"} / {flag:"x"} / {notFlag:"x"} / {all:[..]} / {any:[..]}
+// 効果:    {hp:±n, mud:±n, item:"x", n:個数, removeItem:"x",
+//           flag:"x"|[..], unflag:"x"}
+// choice.to: 文字列 or [{if:cond,to:"id"},{to:"既定"}]
+// combat:true = 戦闘リアクションノード(本文字数基準を緩和)
+// death:true  = 落命ノード(結末には数えない)
+// ============================================================
+const STORY = {
+  meta: {
+    title: "沈まぬ者たち",
+    subtitle: "泥海と白い都 ― 潜り屋遠征記",
+    maxhp: 18,
+    intro: "ある朝、大地は約束を忘れた。〈流化〉——地面が泥へほどけた日から百年。人は杭の上に村を組み、泥に沈む深さで税を測られて生きている。北の空には白い都〈浮洲〉。軽さを独り占めした〈浮き人〉たちの国。あなたは黒泥に潜って沈んだ世界を拾い上げる、潜り屋だ。",
+    howto: [
+      "【体力】…… 尽きれば泥に沈み、落命します。蒸留水を飲めば回復できます(様態欄の「水を飲む」)。",
+      "【泥なじみ】…… 泥に敬意を払うほど高まります。深みへの道と、いくつかの奇跡を開きます。",
+      "【所持品】…… 選択肢を解く鍵。戦いの流れを変える物もあります。",
+      "戦いでは相手の「予兆」を読みます。正しく読めば無傷、読み違えれば体力を失います。",
+      "結末は全部で六つ。落命しても「直前に戻る」で選び直せます。"
+    ]
+  },
+  glossary: [
+    { term: "流化(りゅうか)", def: "百年前、大地が泥へとほどけた天変。原因は伝承の彼方——ということに、なっている。" },
+    { term: "黒泥と白泥", def: "黒泥は重く、すべてを呑む。白泥は軽く、上に浮かぶ。白泥の上澄みを独占する者だけが、浮かんで暮らせる。" },
+    { term: "浮き人(うきびと)", def: "白い都〈浮洲〉に住む貴族。軽さは血筋であり、権利であり、税の根拠である。" },
+    { term: "錘の制(おもりのせい)", def: "浮き人の重さを、生まれながらに民へ移し替える制度。移し替えの証文を〈錘符(おもりふ)〉と呼ぶ。" },
+    { term: "潜り屋", def: "黒泥に潜り、沈んだ旧世界から金物や道具を引き上げる稼業。泥にいちばん近い人間。" },
+    { term: "検泥官(けんでいかん)", def: "浮洲の徴税吏。民の「沈み具合」を検分し、重さ税を課す。白い徽章が身分の証。" },
+    { term: "臍の底(ほぞのそこ)", def: "泥海で最も深い場所。沈んだ都がそのままの姿で眠るという。並の潜りでは還れない。" },
+    { term: "泥鰌組(どじょうぐみ)", def: "泥の水路を知り尽くした沼賊。義賊とも、ただの賊とも言われる。" },
+    { term: "泥なじみ", def: "泥があなたを憶えている度合い。泥は、重さを厭わぬ者を好む。" }
+  ],
+  items: {
+    water:   { name: "蒸留水",       desc: "澄んだ水。飲めば体力が6戻る。" },
+    harpoon: { name: "銛",           desc: "使い込まれた潜り漁の銛。急所を知る者の得物。" },
+    oil:     { name: "泥避けの油",   desc: "全身に塗れば泥も錠前も滑る。一度きり。" },
+    pearl:   { name: "泥真珠",       desc: "泥蟹が百年磨いた珠。米の一年分、あるいは袖の下。" },
+    float:   { name: "浮き袋",       desc: "潜りの浮き袋。深みで息を繋ぐ。" },
+    badge:   { name: "検泥官の徽章", desc: "白い徽章。検問では、これほど効く札もない。" },
+    seed:    { name: "根の種",       desc: "ガラス質の莢に包まれた一粒。世界を固かった頃へ繋ぎ直す、最後の種。" },
+    deed:    { name: "大符",         desc: "すべての錘符の親札。紙一枚に、国ひとつ分の重さの根が書かれている。" }
+  },
+  startNode: "start",
+  nodes: {
+    // ---------- 第一章 黒泥 ----------
+    start: {
+      chapter: "第一章 黒泥",
+      title: "杭立の村",
+      text: "夜明けの泥海は、鈍い鉛色に凪いでいた。見渡す限りの泥、泥、泥。百年前の〈流化〉で大地は液状にほどけ、世界は底のない沼になった。\nあなたは杭上の村〈杭立(くいだち)〉の潜り屋だ。今日の仕事は、村の沖に沈む鐘楼から金物を引き上げること。\n桟橋の端で、道具屋のヌイ婆(ばあ)が手招きしている。「潜るのかい。餞別をひとつ、持っておゆき」",
+      choices: [
+        { label: "婆の店に寄る", to: "shop" },
+        { label: "「急ぐんだ」——そのまま潜り場へ", to: "dive1" }
+      ]
+    },
+    shop: {
+      chapter: "第一章 黒泥",
+      title: "ヌイ婆の店",
+      text: "店といっても、筏に道具を並べただけの見世だ。婆は欠けた歯を見せて笑う。「若いの、泥はね、逆らう者から呑んでいくよ。——さあ、どれでも一つだけだ」\n並んでいるのは三つ。澄んだ水の壜がふたつ。使い込まれた銛がひと振り。泥避けの油の壺がひとつ。",
+      choices: [
+        { label: "蒸留水を二本もらう", effects: { item: "water", n: 2 }, to: "dive1" },
+        { label: "銛をもらう", effects: { item: "harpoon" }, to: "dive1" },
+        { label: "泥避けの油をもらう", effects: { item: "oil" }, to: "dive1" }
+      ]
+    },
+    dive1: {
+      chapter: "第一章 黒泥",
+      title: "潜行",
+      text: "命綱を腰に結び、あなたは黒泥へ身を沈める。泥は冷たく、重く、生き物のようにまとわりつく。\n潜り屋の心得はふたつ。掻けば掻くほど、泥は締まる。委ねれば委ねるほど、泥は道を開ける。\n鐘楼までは深さ十尋(ひろ)。さて、どう潜る。",
+      choices: [
+        { label: "泥に身を任せ、沈む速さで潜る", effects: { mud: 1 }, to: "bell" },
+        { label: "力ずくで掻き進む", effects: { hp: -2 },
+          to: [ { if: { hpLte: 0 }, to: "death_deep" }, { to: "bell" } ] }
+      ]
+    },
+    bell: {
+      chapter: "第一章 黒泥",
+      title: "沈鐘",
+      text: "鐘楼は泥の中に斜めに立っていた。緑青(ろくしょう)を吹いた大鐘が、百年前のまま口を開けている。\n鐘の中へ手を差し入れた、その時。泥がざわりと膨らんだ。殻径二間(けん)はあろうかという泥蟹(でいがい)——沈んだ都の主のひとつが、鋏を鳴らして、あなたと鐘の間に割り込んだ。",
+      choices: [{ label: "身構える", to: "crab1" }]
+    },
+    crab1: {
+      chapter: "第一章 黒泥",
+      title: "泥蟹 ― 一の間合い",
+      combat: true,
+      text: "泥越しでも分かる。蟹は殺気を隠していない。殻径二間の巨体が、獲物を測る間合いへ、じり、と踏み込んでくる。\n——予兆。右手側で、泡がふたつ、続けて弾けた。泥の流れが、右から巻いてくる。",
+      choices: [
+        { label: "左へ身をよじる", to: "crab2" },
+        { label: "右へ躱す", effects: { hp: -4 },
+          to: [ { if: { hpLte: 0 }, to: "death_crab" }, { to: "crab1b" } ] },
+        { label: "銛で泡の中心を突き通す", if: { item: "harpoon" }, to: "crab_win" }
+      ]
+    },
+    crab1b: {
+      chapter: "第一章 黒泥",
+      title: "掠める鋏",
+      combat: true,
+      text: "読み違えた。右の泡は誘いで、鋏は流れの裏から伸びてきた。脇腹を掠め、泥に赤が滲む。\n蟹はまた泡を吐く——右で、ふたつ。同じ手だ。同じ手に、二度かかる理由はない。",
+      choices: [
+        { label: "今度こそ左へ", to: "crab2" },
+        { label: "力任せに鋏を押し返す", effects: { hp: -4 },
+          to: [ { if: { hpLte: 0 }, to: "death_crab" }, { to: "crab1b" } ] },
+        { label: "銛で泡の中心を突く", if: { item: "harpoon" }, to: "crab_win" }
+      ]
+    },
+    crab2: {
+      chapter: "第一章 黒泥",
+      title: "泥蟹 ― 二の間合い",
+      combat: true,
+      text: "蟹が殻を軋ませ、両の鋏を大きく振りかぶった。頭上の泥が翳り、水圧が肌を押す。\n振り下ろしは速い。躱しきれるものではない。だが振りかぶった今この瞬間、懐は——がら空きだ。",
+      choices: [
+        { label: "鋏の下、懐へ潜り込む", to: "crab_win" },
+        { label: "後ろへ跳び退く", effects: { hp: -4 },
+          to: [ { if: { hpLte: 0 }, to: "death_crab" }, { to: "crab2b" } ] },
+        { label: "銛で殻の継ぎ目を突く", if: { item: "harpoon" }, to: "crab_win" }
+      ]
+    },
+    crab2b: {
+      chapter: "第一章 黒泥",
+      title: "追い打ち",
+      combat: true,
+      text: "泥の中で「跳ぶ」は悪手だ。逃げた分だけ泥が締まり、振り下ろされた鋏が肩を打つ。\n蟹はなおも両鋏を振りかぶる。開いているのは、懐だけだ。",
+      choices: [
+        { label: "懐へ潜り込む", to: "crab_win" },
+        { label: "なお下がる", effects: { hp: -4 },
+          to: [ { if: { hpLte: 0 }, to: "death_crab" }, { to: "crab2b" } ] }
+      ]
+    },
+    crab_win: {
+      chapter: "第一章 黒泥",
+      title: "鐘の底",
+      text: "急所を突かれた蟹は鋏を畳み、泥煙を残して深みへ退いていった。\n鐘の中には、目当ての金物のほかに、思わぬものが眠っていた。鈍く光る泥真珠(でいしんじゅ)。泥蟹が百年かけて磨いた珠だ。米の一年分にはなる。\n泥が、ゆっくりとあなたの背を押した。浮上の潮だ。",
+      effects: { item: "pearl", mud: 1 },
+      choices: [{ label: "浮上する", to: "surface" }]
+    },
+    surface: {
+      chapter: "第一章 黒泥",
+      title: "白鷺",
+      text: "泥から顔を出すと、村がざわめいていた。桟橋に白い平船——検泥官の徴税船〈白鷺〉が着いている。\n白衣の官吏サザレが、村人をひとりずつ泥に立たせ、沈む深さを検分していた。「重い者ほど、国を沈める。ゆえに重さは、罪である」\n人垣の後ろで、少年ツブテが石を握りしめているのが見えた。",
+      choices: [
+        { label: "前に出て、検分を受ける", to: "inspect" },
+        { label: "人垣に隠れてやり過ごす", to: "hide" }
+      ]
+    },
+    inspect: {
+      chapter: "第一章 黒泥",
+      title: "検分",
+      text: "サザレの目が、あなたの腰の網袋に留まった。泥真珠の光は、白衣の官吏の目にはよく映る。\n「潜り屋か。引き上げた物品には浮上税がかかる。——その珠、供出せよ」\n背後で村人たちが息を詰める。白鷺の船べりには、棒を持った供の官吏がふたり。",
+      choices: [
+        { label: "珠を差し出す", if: { item: "pearl" }, effects: { removeItem: "pearl" }, to: "village_night" },
+        { label: "泥に珠を落として隠す", if: { mud: 2 }, lockedHint: "泥が、まだあなたに手を貸さない。",
+          effects: { flag: "hidPearl" }, to: "village_night" },
+        { label: "「これは村の米代だ」と拒む", to: "s1" }
+      ]
+    },
+    s1: {
+      chapter: "第一章 黒泥",
+      title: "乱闘 ― 一",
+      combat: true,
+      text: "「不服、と記録する」サザレが顎をしゃくると、供の官吏が棒を構えて踏み込んできた。\n——予兆。右肩が沈み、棒の先が水平に流れる。右薙ぎだ。",
+      choices: [
+        { label: "低く屈んでやり過ごす", to: "s2" },
+        { label: "腕で受ける", effects: { hp: -4 },
+          to: [ { if: { hpLte: 0 }, to: "death_fight" }, { to: "s1b" } ] }
+      ]
+    },
+    s1b: {
+      chapter: "第一章 黒泥",
+      title: "痺れる腕",
+      combat: true,
+      text: "棒は硬く、受けた腕が骨まで痺れた。この痺れは、じきに肩まで来る。長引かせる余裕はない。\n官吏はまた右肩を沈める。同じ太刀筋——学ばないのは、どちらだ。",
+      choices: [
+        { label: "低く屈む", to: "s2" },
+        { label: "膝をつき、珠を差し出す", if: { item: "pearl" }, effects: { removeItem: "pearl" }, to: "village_night" },
+        { label: "また受ける", effects: { hp: -4 },
+          to: [ { if: { hpLte: 0 }, to: "death_fight" }, { to: "s1b" } ] }
+      ]
+    },
+    s2: {
+      chapter: "第一章 黒泥",
+      title: "乱闘 ― 二",
+      combat: true,
+      text: "屈んだあなたの頭上を、風を裂いて棒が薙いだ。勢い余った官吏の足が、桟橋の縁——泥をかぶって滑る板の上に乗る。潜り屋なら誰でも知っている、村でいちばん滑る一枚だ。体勢は、崩れている。",
+      choices: [
+        { label: "足元の泥板を蹴り抜く", to: "insp_win" },
+        { label: "正面から組みつく", effects: { hp: -4 },
+          to: [ { if: { hpLte: 0 }, to: "death_fight" }, { to: "s2b" } ] }
+      ]
+    },
+    s2b: {
+      chapter: "第一章 黒泥",
+      title: "組み負け",
+      combat: true,
+      text: "官吏は見かけより重い——否、没収した重さを、まとっている。組んだまま桟橋に叩きつけられた。\nそれでも相手の足は、まだ滑る泥板の上だ。",
+      choices: [
+        { label: "泥板を蹴り抜く", to: "insp_win" },
+        { label: "膝をつき、珠を差し出す", if: { item: "pearl" }, effects: { removeItem: "pearl" }, to: "village_night" },
+        { label: "なお組み合う", effects: { hp: -4 },
+          to: [ { if: { hpLte: 0 }, to: "death_fight" }, { to: "s2b" } ] }
+      ]
+    },
+    insp_win: {
+      chapter: "第一章 黒泥",
+      title: "引き潮",
+      text: "官吏は泥板ごと足を取られ、黒泥に尻から落ちた。白衣が見る間に黒く染まる。サザレは眉ひとつ動かさず、供を引き上げさせた。\n「潜り屋。顔と名を、記録した」\n白鷺は去った。桟橋には、官吏が落とした白い徽章がひとつ、残されていた。",
+      effects: { item: "badge", flag: "hunted" },
+      choices: [{ label: "徽章を拾い、村へ戻る", to: "village_night" }]
+    },
+    hide: {
+      chapter: "第一章 黒泥",
+      title: "石つぶて",
+      text: "あなたは人垣の陰で検分をやり過ごした。だが、ツブテは我慢しなかった。少年の投げた石が、サザレの白衣に黒泥の染みをつくる。\n官吏たちが少年を取り押さえ、縄をかけた。「都で錘を負わせる。軽くなりたい者は、いくらでもいる」\n白鷺の出航まで、あとわずか。",
+      choices: [
+        { label: "群衆に紛れ、縄を切る", to: "cutrope" },
+        { label: "目を伏せて見送る", effects: { flag: ["childTaken", "guilt"] }, to: "village_night" }
+      ]
+    },
+    cutrope: {
+      chapter: "第一章 黒泥",
+      title: "切った縄",
+      text: "あなたは荷役に紛れて船べりに寄り、少年の縄を切った。ツブテは泥に飛び込み、水路の陰へ——潜り屋の村の子だ、泥の中まで官吏は追えない。\nサザレの目が、群衆の中のあなたを正確に捉えた。「顔と名を、記録した」\n白鷺は少年を諦め、出航していった。",
+      effects: { flag: ["savedChild", "hunted"] },
+      choices: [{ label: "村へ戻る", to: "village_night" }]
+    },
+    village_night: {
+      chapter: "第一章 黒泥",
+      title: "囲炉裏の伝承",
+      text: "夜。ヌイ婆の筏で、村の者が囲炉裏を囲んだ。婆は古い唄を低く歌う。\n——昔、大地には根があった。根は臍(ほぞ)の底に繋がれ、世界は固かった。初代の浮き人がその根を抜き、軽さを独り占めた。抜かれた大地はほどけて泥に、根の種は臍の底に沈んだまま——。\n「ただの唄さ」と婆は笑う。「けどね、泥はぜんぶ憶えてるよ」",
+      choices: [
+        { label: "唄の続きを、最後まで聞く", effects: { mud: 1 }, to: "hub_v" },
+        { label: "火を落として眠る", to: "hub_v" }
+      ]
+    },
+    hub_v: {
+      chapter: "第一章 黒泥",
+      title: "夜明けの桟橋",
+      text: "朝。泥海は今日も鉛色に凪いでいる。あなたには、行くべき場所がいくつかある。\n村の沖、すべての泥が繋がるという最深部〈臍の底〉。水路の奥、沼賊・泥鰌組の隠れ里。そして北の水平線——白い都〈浮洲〉へ渡る検問所、〈泥境(どろざかい)〉。",
+      choices: [
+        { label: "臍の底へ潜る", if: { notFlag: "vDeep" }, to: "deep1" },
+        { label: "泥鰌組の里を訪ねる", if: { notFlag: "vRebels" }, to: "rebels" },
+        { label: "泥境の検問へ発つ", to: "gate" }
+      ]
+    },
+    // ---------- 臍の底 ----------
+    deep1: {
+      chapter: "第一章 黒泥",
+      title: "臍の底へ",
+      effects: { flag: "vDeep" },
+      text: "村の沖、泥がゆるく渦を巻く場所に、あなたは筏を留めた。臍の底までは、深さ百尋。並の潜りでは、息より先に体のほうが潰れる深さだ。潜り屋は代々、ここで竿を刺し、ここで引き返してきた。\n腰の命綱を、あなたは外した。この深さに、届く綱はないからだ。",
+      choices: [
+        { label: "浮き袋の空気を含み、沈む", if: { item: "float" }, to: "deep2" },
+        { label: "生身のまま、息の限りで沈む", effects: { hp: -4 },
+          to: [ { if: { hpLte: 0 }, to: "death_deep" }, { to: "deep2" } ] },
+        { label: "今日はやめておく", to: "hub_v" }
+      ]
+    },
+    deep2: {
+      chapter: "第一章 黒泥",
+      title: "沈都の書庫",
+      text: "泥が薄れ、ふいに視界がひらけた。臍の底は泥の下の空洞——沈んだ都が、百年前の姿のまま静まり返っていた。\n石造りの書庫で、蝋引きの帳面が読めた。〈流化〉は天変ではない。初代浮洲公が大地の根を引き抜いた、その記録。錘の制の原簿。そして、沈んだ者たちの長い長い名簿。\n棚の奥では蒸留器がまだ生きていて、澄んだ水が一壜、たまっていた。",
+      effects: { flag: "truth", item: "water" },
+      choices: [
+        { label: "名簿の名を、声に出して読み上げる", effects: { mud: 1 }, to: "deep3" },
+        { label: "帳面を胸に刻み、先へ進む", to: "deep3" }
+      ]
+    },
+    deep3: {
+      chapter: "第一章 黒泥",
+      title: "主",
+      text: "書庫を出ると、沈都の広場に〈主(ぬし)〉がいた。泥鯨(でいげい)のオオドロ。山ほどもある背に沈んだ家々を乗せ、百年、臍の底を巡っている。\nその鼻先に、小さな光が見えた。ガラス質の莢(さや)に包まれた——種だ。伝承の、根の種。\nオオドロの目が、ゆっくりと、あなたを向いた。",
+      choices: [
+        { label: "泥に掌を差し入れ、挨拶をする", if: { mud: 3 },
+          lockedHint: "泥が、まだあなたを主に取り次がない。", to: "deep_seed" },
+        { label: "銛を構える", if: { item: "harpoon" }, to: "deep_flee" },
+        { label: "静かに退く", to: "hub_v" }
+      ]
+    },
+    deep_seed: {
+      chapter: "第一章 黒泥",
+      title: "根の種",
+      text: "泥に差し入れた掌を、生ぬるい流れが包んだ。泥越しに、オオドロの声とも震えともつかぬものが伝わってくる。——憶えている。おまえは、重さを厭わぬ者。\n主は鼻先で莢をあなたの掌に押しつけると、静かに沈都の巡回へ戻っていった。\n根の種。世界を固かった頃へ繋ぎ直す、最後の一粒。",
+      effects: { item: "seed", mud: 2 },
+      choices: [{ label: "浮上する", to: "hub_v" }]
+    },
+    deep_flee: {
+      chapter: "第一章 黒泥",
+      title: "去る主",
+      text: "銛の穂先を認めた途端、オオドロは音もなく身を翻した。山のような背が泥を巻き上げ、沈都の広場が濁って閉じる。種の光は、その巨体もろとも深みへ消えていった。泥が、少し冷たくなった気がした。\n主は二度と、同じ場所には現れないという。古い潜り屋たちは、そう言っていた。",
+      effects: { flag: "scaredNushi" },
+      choices: [{ label: "浮上する", to: "hub_v" }]
+    },
+    // ---------- 泥鰌組 ----------
+    rebels: {
+      chapter: "第一章 黒泥",
+      title: "泥鰌組",
+      effects: { flag: "vRebels" },
+      text: "水路の奥、半分沈んだ酒場が泥鰌組の隠れ里だった。頭目のカジカは片目の脇に白泥の飛沫跡がある女で、あなたの稼業を一目で言い当てた。\n「潜り屋か。ちょうどいい。あたしらは近く、浮洲の〈錘蔵〉を破る。錘符さえ燃やしちまえば、浮き人どもは自分の重さを思い出す。——泥の下を行ける腕が、要るんだ」",
+      choices: [
+        { label: "「乗った」——一味に加わる", effects: { flag: "rebel", item: "float" }, to: "rebels_join" },
+        { label: "話だけ聞いて、里を出る", effects: { flag: "knowPlan" }, to: "hub_v" }
+      ]
+    },
+    rebels_join: {
+      chapter: "第一章 黒泥",
+      title: "盃",
+      text: "カジカは欠け茶碗の泥水で盃事を済ませると、餞別を寄越した。潜りの浮き袋がひとつ。それに、よくできた偽の検泥官徽章がひとつ。\n「錘蔵は浮洲の北蔵だ。手筈が整うまで、都で目立つんじゃないよ。……ああ、それと」頭目は初めて笑った。「死ぬな。泥はあんたを気に入ってる」",
+      effects: { item: "badge" },
+      choices: [{ label: "里を出る", to: "hub_v" }]
+    },
+    // ---------- 泥境 ----------
+    gate: {
+      chapter: "第二章 白い都",
+      title: "泥境の検問",
+      text: "北の水面に、白い城壁のような検問所〈泥境〉が浮かんでいた。ここを越えなければ、浮洲へは入れない。桟橋では検泥官が渡航者をひとりずつ検分している。\n列の脇には密告箱。「浮洲に仇なす企てを知る者は申し出よ。褒賞は——軽さ」と書いてある。",
+      choices: [
+        { label: "徽章を示し、官吏として渡る", if: { item: "badge" }, effects: { flag: "disguised" }, to: "city_intro" },
+        { label: "泥真珠を検分官の袖に落とす", if: { item: "pearl" }, effects: { removeItem: "pearl" }, to: "city_intro" },
+        { label: "泥鰌組の隠し水路を行く", if: { flag: "rebel" }, effects: { flag: "smuggled" }, to: "city_intro" },
+        { label: "渡し船の船底に貼りつき、泥中を曳かれて渡る", effects: { hp: -4, flag: "stowaway" },
+          to: [ { if: { hpLte: 0 }, to: "death_mud" }, { to: "city_intro" } ] },
+        { label: "密告箱に、泥鰌組の企てを書いて入れる", if: { any: [{ flag: "rebel" }, { flag: "knowPlan" }] },
+          effects: { flag: "traitor" }, to: "city_intro" }
+      ]
+    },
+    city_intro: {
+      chapter: "第二章 白い都",
+      title: "浮洲",
+      text: "浮洲は、噂よりも白かった。白泥を固めた楼閣が幾重にも浮かび、運河には白い小舟。行き交う浮き人たちは羽のように軽く、爪先だけで歩き、笑い声まで軽い。\n重さは、ここにはない。ぜんぶ、下に置いてきたのだ——あなたたちの、泥の海に。\n広場の高札が目に入った。『錘引受市、本日も開催』",
+      choices: [{ label: "都を行く", to: "city_hub" }]
+    },
+    city_hub: {
+      chapter: "第二章 白い都",
+      title: "浮洲の辻",
+      text: "白い辻に立つ。行き交う浮き人は、泥に汚れたあなたを見ない。見えていないのかもしれない。\n北へ行けば、国じゅうの錘符を納めた〈錘蔵〉。中央の丘には女公の宮〈白洲(しらす)〉。そして広場からは、錘引受市——〈錘見世〉の触れ声が、軽い風に乗って続いている。",
+      choices: [
+        { label: "錘見世を覗く", if: { all: [{ flag: "childTaken" }, { notFlag: "vOmomise" }] }, to: "omomise" },
+        { label: "錘蔵へ向かう",
+          if: { all: [ { any: [{ flag: "rebel" }, { flag: "knowPlan" }] }, { notFlag: "traitor" }, { notFlag: "vKura" } ] },
+          to: "kura1" },
+        { label: "宮〈白洲〉へ向かう", to: "palace_way" }
+      ]
+    },
+    omomise: {
+      chapter: "第二章 白い都",
+      title: "錘見世",
+      effects: { flag: "vOmomise" },
+      text: "市場では、浮き人の錘が競りにかけられていた。銭に困った者が、金と引き換えに他人の重さを背負う——そして背負い過ぎた者から、泥に沈んでいく。\n競り台の上に、見知った顔があった。ツブテだ。村で連れ去られた少年に、大人三人分の錘符が読み上げられている。「若い、まだ沈まん。さあ、幾らだ」",
+      choices: [
+        { label: "「その錘、俺が代わりに負う」", effects: { hp: -3, mud: 2, flag: "savedChild" },
+          to: [ { if: { hpLte: 0 }, to: "death_mud" }, { to: "omomise_after" } ] },
+        { label: "泥真珠で少年を買い戻す", if: { item: "pearl" },
+          effects: { removeItem: "pearl", flag: "savedChild" }, to: "omomise_after" },
+        { label: "目を伏せ、市を離れる", effects: { flag: "guilt2" }, to: "city_hub" }
+      ]
+    },
+    omomise_after: {
+      chapter: "第二章 白い都",
+      title: "軽くなった背",
+      text: "競り人は肩をすくめ、係の官吏が手続きを済ませた。ツブテはあなたの袖を掴んでひとしきり泣きじゃくり、それから村への渡し船へ駆けていった。\n背は、確かに重い。だが不思議と、足取りは沈まなかった。白い舗道の下で、泥がずっと、あなたを支えている気がした。",
+      choices: [{ label: "辻へ戻る", to: "city_hub" }]
+    },
+    // ---------- 錘蔵 ----------
+    kura1: {
+      chapter: "第二章 白い都",
+      title: "錘蔵",
+      effects: { flag: "vKura" },
+      text: "北蔵は白泥を固めた巨大な円筒で、窓ひとつない。錘符——重さの移し替え証文のすべてが、この中に眠っている。\n正面には長柄を持った番士がひとり。壁面には白泥の樋(とい)が屋根から地口まで走り、月明かりにぬめって見えた。",
+      choices: [
+        { label: "泥避けの油を全身に塗り、樋を伝って忍び込む", if: { item: "oil" },
+          effects: { removeItem: "oil" }, to: "kura2" },
+        { label: "正面の番士を抜く", to: "k_f1" },
+        { label: "引き返す", to: "city_hub" }
+      ]
+    },
+    k_f1: {
+      chapter: "第二章 白い都",
+      title: "番士",
+      combat: true,
+      text: "番士は誰何(すいか)より先に長柄を構えた。浮き人の兵は軽い。軽いが——速い。\n——予兆。穂先が沈み、爪先が浮いた。突きだ。まっすぐ、喉へ来る。",
+      choices: [
+        { label: "半身に開き、柄ごと引き込む", to: "k_win" },
+        { label: "長柄を正面で受ける", effects: { hp: -4 },
+          to: [ { if: { hpLte: 0 }, to: "death_fight" }, { to: "k_f1b" } ] }
+      ]
+    },
+    k_f1b: {
+      chapter: "第二章 白い都",
+      title: "軽い兵",
+      combat: true,
+      text: "受けた腕ごと跳ね上げられ、体が泳いだ。軽い兵は手数で押してくる。二の突き、三の突き。だが型は同じだ——穂先が沈み、爪先が浮く。また、まっすぐな突きが来る。",
+      choices: [
+        { label: "半身に開き、柄ごと引き込む", to: "k_win" },
+        { label: "また受ける", effects: { hp: -4 },
+          to: [ { if: { hpLte: 0 }, to: "death_fight" }, { to: "k_f1b" } ] }
+      ]
+    },
+    k_win: {
+      chapter: "第二章 白い都",
+      title: "開いた地口",
+      text: "引き込まれた番士は白い舗道の上を泳ぎ、後頭を打って伸びた。浮き人の骨は軽い。息はある——悪く思うな。\n物陰に番士を横たえ、腰から鍵束を抜く。三本目の鍵で、地口の錠が回った。開いた戸の隙間から、蔵の闇が、古い紙の匂いを吐いた。",
+      choices: [{ label: "蔵に入る", to: "kura2" }]
+    },
+    kura2: {
+      chapter: "第二章 白い都",
+      title: "符の海",
+      text: "蔵の中は、床から天井まで錘符で埋まっていた。何十万枚。その一枚一枚が、ひとりの民の背に載る重さの証文だ。\n燃やせば、重さは持ち主——浮き人たちの体へ、一斉に返る。白い都は、自分の重さで沈むだろう。\n棚の最奥、白金の匣(はこ)にはひときわ古い一枚。〈大符〉。初代浮洲公が最初に書いた、すべての錘符の親札——沈都の帳面にあった通りなら。",
+      choices: [
+        { label: "火を放つ", to: "revolt_escape" },
+        { label: "〈大符〉を抜き取る", if: { flag: "truth" },
+          lockedHint: "どれが親札か、見分けるための知識がない。",
+          effects: { item: "deed" }, to: "kura3out" },
+        { label: "何も取らず、蔵を出る", to: "city_hub" }
+      ]
+    },
+    kura3out: {
+      chapter: "第二章 白い都",
+      title: "懐の親札",
+      text: "大符は、掌に載るほどの白い札だった。書かれた名は掠れて読めない。だが札は、ほんのりと重い。紙一枚の重さではない——国ひとつ分の、重さの根が、ここに繋がれている。\nあなたは匣を元通りに閉じ、符の海をそっと戻り、来た道から蔵を抜け出した。夜のうちに、誰も気づかない。",
+      choices: [{ label: "辻へ戻る", to: "city_hub" }]
+    },
+    revolt_escape: {
+      chapter: "第二章 白い都",
+      title: "火",
+      text: "油紙の符は、恐ろしいほどよく燃えた。\n窓なき蔵の壁から白煙が噴き、半鐘が鳴り、そして——都が、傾いだ。重さが持ち主へ返っていく。羽のようだった浮き人たちが生まれて初めての自重に膝を折り、白い楼閣が軋みながら泥へ沈み始める。\nあなたは騒乱の水路を潜り抜け、泥境を越えて、泥海へ逃れた。",
+      choices: [{ label: "振り返らずに泳ぐ", to: "ending_revolt" }]
+    },
+    // ---------- 宮〈白洲〉 ----------
+    palace_way: {
+      chapter: "第三章 白洲",
+      title: "宮〈白洲〉",
+      text: "丘の上の宮は、繭のように白かった。夜も昼も灯りが要らないほど白く、近づくほどに、自分の泥の色が濃くなっていく気がする。\n大門には歩哨、回廊には官吏。だが宮の裏手、庭園からは一本、白泥の樋が泥海まで垂れている。\nさて、どこから入る。",
+      choices: [
+        { label: "大門から、正面切って入る", if: { any: [{ flag: "disguised" }, { flag: "traitor" }] }, to: "audience" },
+        { label: "夜を待ち、庭園の樋を登る", to: "garden" }
+      ]
+    },
+    audience: {
+      chapter: "第三章 白洲",
+      title: "謁見の間",
+      effects: { flag: "metDuchess" },
+      text: "徽章と、物珍しさとが、あなたを謁見の間まで通した。\n白い広間の奥、玉座には誰も座っていない。代わりに、天蓋から吊るされた銀の鎖の先に——女がひとり、浮いていた。\n浮洲女公シラタエ。軽さの血を煮詰めた、最後のひとり。軽すぎて、鎖で繋いでおかねば天井に、いずれ空に、昇っていってしまうのだという。\n「泥の匂い」と女公は言った。「懐かしい。……近う」",
+      choices: [{ label: "進み出る", to: "palace_talk" }]
+    },
+    garden: {
+      chapter: "第三章 白洲",
+      title: "浮庭",
+      effects: { flag: ["privateAudience", "metDuchess"] },
+      text: "夜。樋を登りきった先は、白い花ばかりの庭園だった。\nその中央に、女がひとり浮いていた。足首の銀鎖が、床の環に繋がれている。浮洲女公シラタエ——軽すぎて、鎖なしでは空へ昇ってしまう体。供も歩哨も、いない。軽い者は、どうせ逃げられないからだ。\n女公は驚きもせず、逆さの睫毛であなたを見た。「泥の匂い。……久しく、嗅いでいなかった」",
+      choices: [{ label: "歩み寄る", to: "palace_talk" }]
+    },
+    palace_talk: {
+      chapter: "第三章 白洲",
+      title: "軽さの玉座",
+      text: "「わたくしは、床を知らないの」と女公は言った。「生まれてから一度も、地に足が着かない。重さはぜんぶ、あなたたちに預けてあるから」\nその声に驕りはなく、ただ長い長い倦みがあった。「潜り屋。泥の底から、何を持ってきたの」\nそれから女公は、ふと悪戯のように囁いた。「ねえ。うちの子に、なる? 軽くして、あげるわ」\n広間の隅で、鈍い音がした。錘騎士ガラン——没収した錘符を鎧に鋳込んだ宮の守り手が、確かな重さで、間合いを測っている。",
+      choices: [
+        { label: "根の種を、白い床に置く",
+          if: { all: [{ item: "seed" }, { flag: "truth" }, { mud: 6 }] },
+          lockedHint: "種と、真実と、深い泥なじみ——三つ揃わねば、泥は応えない。",
+          to: "root_rite" },
+        { label: "大符に女公の名を書き足す", if: { item: "deed" }, to: "vengeance_node" },
+        { label: "「錘の制を、いまここで廃せ」——得物を構える", to: "g1" },
+        { label: "囁きに頷き、縁組の白衣を受ける",
+          if: { any: [{ flag: "traitor" }, { flag: "privateAudience" }] }, to: "noble_node" },
+        { label: "何も告げず、泥の海へ帰る", to: "margin_node" }
+      ]
+    },
+    // ---------- 錘騎士 ----------
+    g1: {
+      chapter: "第三章 白洲",
+      title: "錘騎士 ― 一",
+      combat: true,
+      text: "「戯れが過ぎます、御方様」\nガランが進み出た。一歩ごとに、白い床が鳴る。この都でただひとり、重さを身に纏うことを許された騎士。\n——予兆。騎士が錘鎖を床に垂らした。鎖が這い、あなたの足元の白泥が、ふっと沈んだ。足場ごと、崩す気だ。",
+      choices: [
+        { label: "崩れる前に、柱の台座へ跳ぶ", to: "g2" },
+        { label: "その場で踏ん張る", effects: { hp: -5 },
+          to: [ { if: { hpLte: 0 }, to: "death_fight" }, { to: "g1b" } ] }
+      ]
+    },
+    g1b: {
+      chapter: "第三章 白洲",
+      title: "沈む床",
+      combat: true,
+      text: "床が口を開け、腰まで白泥に呑まれた。都の白泥は軽い——軽いくせに、絡む。錘鎖が引き戻され、また床を這う。沈む足場に、留まる理由はもうない。",
+      choices: [
+        { label: "台座へ這い上がる", to: "g2" },
+        { label: "泥の中で耐える", effects: { hp: -5 },
+          to: [ { if: { hpLte: 0 }, to: "death_fight" }, { to: "g1b" } ] }
+      ]
+    },
+    g2: {
+      chapter: "第三章 白洲",
+      title: "錘騎士 ― 二",
+      combat: true,
+      text: "「良い足だ」\n騎士が両腕の錘塊を頭上へ振りかぶった。影が膨らむ。あの一撃は、受けられない。台座ごと砕かれる。\n——だが、振りかぶった今。鎧の懐は、開いている。",
+      choices: [
+        { label: "影の内側、懐へ跳び込む", to: "g3" },
+        { label: "台座から飛び退く", effects: { hp: -5 },
+          to: [ { if: { hpLte: 0 }, to: "death_fight" }, { to: "g2b" } ] }
+      ]
+    },
+    g2b: {
+      chapter: "第三章 白洲",
+      title: "砕ける台座",
+      combat: true,
+      text: "錘塊が台座を砕き、飛んだ破片があなたを打った。騎士は追いすがり、また両腕を振りかぶる。\n躱す場所は、もう懐しか残っていない。",
+      choices: [
+        { label: "懐へ跳び込む", to: "g3" },
+        { label: "なお下がる", effects: { hp: -5 },
+          to: [ { if: { hpLte: 0 }, to: "death_fight" }, { to: "g2b" } ] }
+      ]
+    },
+    g3: {
+      chapter: "第三章 白洲",
+      title: "継ぎ目",
+      combat: true,
+      text: "懐に入った。鎧の胸甲——錘符を鋳込んだ板と板の継ぎ目から、黒い滴がひと筋、垂れている。泥だ。没収された重さたちが、鎧の中で泣いている。\nそこが、心臓だ。",
+      choices: [
+        { label: "銛を継ぎ目へ突き入れる", if: { item: "harpoon" }, to: "garan_down" },
+        { label: "泥を呼ぶ——床下の黒泥へ、掌を向ける", if: { mud: 6 },
+          lockedHint: "泥は、まだあなたの声を知らない。", to: "garan_down" },
+        { label: "素手の指を、継ぎ目へ捩じ込む", effects: { hp: -3 },
+          to: [ { if: { hpLte: 0 }, to: "death_fight" }, { to: "garan_down" } ] },
+        { label: "一度離れて、間合いを取る", effects: { hp: -5 },
+          to: [ { if: { hpLte: 0 }, to: "death_fight" }, { to: "g3b" } ] }
+      ]
+    },
+    g3b: {
+      chapter: "第三章 白洲",
+      title: "離れれば錘",
+      combat: true,
+      text: "離れた瞬間、錘鎖が唸りを上げて横薙ぎに来た。間合いを取れば取るほど、騎士の得物は伸び、重く、速くなる。\n勝機は懐の——泣いている、あの継ぎ目にしかない。",
+      choices: [
+        { label: "再び懐へ。継ぎ目へ銛を", if: { item: "harpoon" }, to: "garan_down" },
+        { label: "泥を呼ぶ", if: { mud: 6 }, to: "garan_down" },
+        { label: "素手の指を捩じ込む", effects: { hp: -3 },
+          to: [ { if: { hpLte: 0 }, to: "death_fight" }, { to: "garan_down" } ] }
+      ]
+    },
+    garan_down: {
+      chapter: "第三章 白洲",
+      title: "重さの帰る音",
+      text: "継ぎ目が裂け、鎧から黒泥が噴き出した。鋳込まれていた錘符が剥がれ、紙吹雪のように舞う。ガランは膝をつき——そして、笑った。「……軽い。三十年ぶりだ」\n舞い散る符の下で、女公の鎖がわずかに軋む。宮の守りは、もういない。\nあなたは銀鎖の環に手をかけ、浮かぶ女公を見上げた。「錘の制を廃せ。触れを書け。いま、ここで」",
+      choices: [{ label: "女公の答えを待つ", to: "ending_edict" }]
+    },
+    // ---------- 結末前夜 ----------
+    root_rite: {
+      chapter: "第三章 白洲",
+      title: "根還し",
+      text: "あなたは莢を割り、根の種を白い床に置いた。それから、泥境から都まで足裏についてきた一片の黒泥を、種の上にそっと重ねる。\n泥は、ぜんぶ憶えている。\n種が、芽吹いた。芽は白い床を割り、樋を伝い、泥海へ潜り、百年ぶりに臍の底の環へ届いた。世界の根が繋ぎ直される音がした——鐘の音に、よく似ていた。",
+      choices: [{ label: "女公の手を、床へ引く", to: "ending_root" }]
+    },
+    vengeance_node: {
+      chapter: "第三章 白洲",
+      title: "親札",
+      text: "あなたは大符を広げ、掠れた初代の名の横に、女公の名を書き足した。\n札が、掌の上でずしりと重くなる。国じゅうの錘符がいっせいに親札へ——白洲の血へ、宛先を書き換えられていく。\n女公は、抗わなかった。ただ、ゆっくりと落ちてくる自分の爪先を、初めて見るもののように見つめていた。「……これが、重さ」",
+      choices: [{ label: "札から手を離す", to: "ending_vengeance" }]
+    },
+    noble_node: {
+      chapter: "第三章 白洲",
+      title: "白衣",
+      text: "白衣は、羽のように軽かった。袖を通した途端、体から重さが抜けていく——書き換えられた錘符が、誰かの背へ載った音だった。誰の背かは、教えてもらえなかった。\n「よく似合う」と女公は笑った。「泥の子。今日からあなたは、沈まない」",
+      choices: [{ label: "白い床に、爪先で立つ", to: "ending_noble" }]
+    },
+    margin_node: {
+      chapter: "第三章 白洲",
+      title: "暇乞い",
+      text: "あなたは何も告げず、頭だけ下げて広間を辞した。女公は引き止めなかった。ただ去り際、囁く声が背を追ってきた。「泥に、よろしく」\n樋を滑り降り、泥境を越え、鉛色の海を村へ向かって泳ぐ。背中の泥は温く、朝の光が水平線を鈍く光らせていた。",
+      choices: [{ label: "村へ帰る", to: "ending_margin" }]
+    },
+    // ---------- 終章 ----------
+    ending_root: {
+      chapter: "終章",
+      title: "根の還る日",
+      ending: { key: "root", name: "終幕・根の還る日", tone: "true" },
+      text: "固まるまで、十年かかった。\n泥はゆっくりと締まり、大地は畦(あぜ)から蘇った。人々は生まれて初めて「地面」を踏み、浮き人たちは生まれて初めて、自分の重さで立った。軽さはもう、血筋ではない。\n女公シラタエは今も時々よろけては笑っている。歩き方を、七十年ぶりに習っているのだ。あなたはといえば、相変わらず泥の残る沼で潜り屋を続けている。\n固い大地の真ん中で——泥はまだ、あなたを憶えている。"
+    },
+    ending_edict: {
+      chapter: "終章",
+      title: "重さの返る朝",
+      ending: { key: "edict", name: "終幕・重さの返る朝", tone: "warm" },
+      text: "触れは夜のうちに書かれ、朝には泥海じゅうの杭村へ届いた。\n錘の制、廃止。重さは十年をかけ、少しずつ持ち主へ返される。浮き人たちはよろけながら歩き方を習い、民の背は年ごとに軽くなった。都は少し沈み、村は少し浮いて、世界は不格好に釣り合っていく。\nガランは鎧を捨て、いまは杭立の村で橋守をしている。重さの返る朝はいつも彼がいちばん早く起きて、桟橋の軋む音を聴いている。"
+    },
+    ending_revolt: {
+      chapter: "終章",
+      title: "沈む白い都",
+      ending: { key: "revolt", name: "終幕・沈む白い都", tone: "dark" },
+      text: "白い都が沈みきるまで、三日かかった。\n重さを返された浮き人の多くは泥の岸へ這い上がり、生まれて初めて、民と同じ高さで泥をかいた。溺れた者も、いた。その数を、誰も数えなかった。\n錘の消えた泥海に、その冬、杭村がいくつも増えた。カジカは言う。「上等な世直しなんて、ないのさ。あるのは泥だけだ」\nあなたは今日も潜る。沈んだ白い都は、存外いい漁場になった。"
+    },
+    ending_vengeance: {
+      chapter: "終章",
+      title: "白洲だけが沈む",
+      ending: { key: "vengeance", name: "終幕・白洲だけが沈む", tone: "dark" },
+      text: "その日、沈んだのは白洲の一族だけだった。\n国じゅうの重さを束で背負わされた浮き人たちは、白い楼閣ごと、静かに泥へ沈んでいった。民は歓声を上げ、それから、だんだんと黙った。沈んでいく白い都はあまりに静かで、あまりに正確に、百年前の意趣を返していたからだ。\n泥海から白い屋根が消えた夜、あなたは自分の掌を見た。\n札一枚で世界を沈める重さは、まだそこに、残っている。"
+    },
+    ending_noble: {
+      chapter: "終章",
+      title: "沈まぬ者",
+      ending: { key: "noble", name: "終幕・沈まぬ者", tone: "dark" },
+      text: "あなたは、沈まない。白い回廊を爪先で歩き、白い舟で運河を渡り、軽い声で笑うことを覚えた。\nただ——泥に、触れられなくなった。指先を運河の外へ伸ばしても、泥はするりと逃げていく。憶えて、いないのだ。もう。\n夜ごと、足の裏が何かを探して宙をかく。夢の中であなたは深く深く潜っていて、目が覚めると、体はどこまでも軽い。\n軽さとは、つまり、どこにも属さないということだった。"
+    },
+    ending_margin: {
+      chapter: "終章",
+      title: "泥境の暮らし",
+      ending: { key: "margin", name: "終幕・泥境の暮らし", tone: "still" },
+      text: "あなたは村へ帰り、潜り屋を続けた。\n世界は変わらない。白鷺は季節ごとに来て、重さを検分していく。ただ、村は少しだけ変わった。あなたの拾う金物で橋が延び、村の子らは弟子入りを志願し、ヌイ婆の唄には新しい節が増えた。\n泥はすべてを憶えている。ならば、今日をよく生きたことも、きっと憶えられているのだろう。\n夜明けの泥海は、今日も鈍く、静かに光る。"
+    },
+    // ---------- 落命(結末には数えない) ----------
+    death_crab: {
+      chapter: "落命",
+      title: "鋏の底",
+      death: true,
+      text: "力が尽きた。泥は、暴れる者から呑む——ヌイ婆の言った通りだった。鋏があなたを泥床へ縫いとめ、視界が端から黒く閉じていく。\n最後に聞こえたのは、大鐘の中で反響する、自分の気泡の音だった。百年前から鳴らない鐘が、その日はじめて、鳴ったのかもしれない。"
+    },
+    death_deep: {
+      chapter: "落命",
+      title: "百尋の圧",
+      death: true,
+      text: "息が、届かなかった。百尋の泥はあなたの輪郭を静かに握り潰し、意識は暗い暖かさの中へほどけていく。痛みはない。深すぎる場所に、痛みは棲めない。\n臍の底は、すべてを憶えている。沈んだ都も、抜かれた根も。そして今日からは——あなたのことも。"
+    },
+    death_fight: {
+      chapter: "落命",
+      title: "白い棒杭",
+      death: true,
+      text: "膝が落ち、泥が迎えに来た。振り下ろされる打撃はやがて遠のき、罵声も、誰かの悲鳴も遠のいて、世界は鉛色の静けさに沈んでいく。\n重さ税の帳面には、短い一行が増えるだろう。「抵抗、一名。処理済み」——あなたの名は、書かれない。",
+    },
+    death_mud: {
+      chapter: "落命",
+      title: "曳かれ泥",
+      death: true,
+      text: "背負った重さに、泥のほうが先に気づいた。船底の泥流は思ったより深く、思ったより冷たい。指がふやけ、握力が先に死に、体がゆっくりと流れに剥がされていく。\n手が離れたことに、船上の誰も気づかない。泥境の泥は今日もひとつ、静かに重さを増した。"
+    }
+  },
+  endingOrder: ["margin", "noble", "revolt", "edict", "vengeance", "root"]
+};
+if (typeof module !== "undefined") module.exports = STORY;
+
+</script>
+<script>
+(function(){
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const main = $("main");
+  const MAXHP = STORY.meta.maxhp;
+
+  // ---------- 状態 ----------
+  let S = null;               // {node,hp,mud,items:Map,flags:Set,visited:Set,log:[]}
+  let achieved = new Set();   // 結末記録(落命は含めない)
+  let undoStack = [];
+
+  function freshState(){
+    return { node: STORY.startNode, hp: MAXHP, mud: 0,
+      items:new Map(), flags:new Set(), visited:new Set(), log:[] };
+  }
+  function snapshot(){
+    return { node:S.node, hp:S.hp, mud:S.mud, items:[...S.items],
+      flags:[...S.flags], visited:[...S.visited], logLen:S.log.length };
+  }
+  function restore(sn){
+    S.node=sn.node; S.hp=sn.hp; S.mud=sn.mud; S.items=new Map(sn.items);
+    S.flags=new Set(sn.flags); S.visited=new Set(sn.visited);
+    S.log.length = sn.logLen;
+  }
+  const itemCount = id => S.items.get(id) || 0;
+
+  // ---------- 条件・効果(検証スクリプトと同一の意味論) ----------
+  function evalCond(c){
+    if(!c) return true;
+    if(c.all) return c.all.every(evalCond);
+    if(c.any) return c.any.some(evalCond);
+    if("mud" in c && !(S.mud >= c.mud)) return false;
+    if("hpLte" in c && !(S.hp <= c.hpLte)) return false;
+    if("item" in c && !(itemCount(c.item) > 0)) return false;
+    if("flag" in c && !S.flags.has(c.flag)) return false;
+    if("notFlag" in c && S.flags.has(c.notFlag)) return false;
+    return true;
+  }
+  function applyEffects(e){
+    if(!e) return;
+    if(e.hp){
+      const before = S.hp;
+      S.hp = Math.min(MAXHP, S.hp + e.hp);      // 下限は落命判定のため0未満も保持
+      if(e.hp < 0) toast("体力 "+e.hp, "dmg");
+      else if(S.hp > before) toast("体力 +"+(S.hp-before), "heal");
+    }
+    if(e.mud){
+      const before = S.mud;
+      S.mud = Math.max(0, Math.min(10, S.mud + e.mud));
+      if(S.mud > before) toast("泥なじみ +"+(S.mud-before));
+    }
+    if(e.item){
+      const n = e.n || 1;
+      S.items.set(e.item, itemCount(e.item) + n);
+      toast("手に入れた:"+STORY.items[e.item].name + (n>1 ? " ×"+n : ""));
+    }
+    if(e.removeItem){
+      const c = itemCount(e.removeItem);
+      if(c > 1) S.items.set(e.removeItem, c-1); else S.items.delete(e.removeItem);
+      toast("失った:"+STORY.items[e.removeItem].name);
+    }
+    if(e.flag) (Array.isArray(e.flag)?e.flag:[e.flag]).forEach(f=>S.flags.add(f));
+    if(e.unflag) S.flags.delete(e.unflag);
+  }
+  function resolveTo(to){
+    if(typeof to === "string") return to;
+    for(const b of to){ if(evalCond(b.if)) return b.to; }
+    return to[to.length-1].to;
+  }
+
+  // ---------- 進行 ----------
+  function choose(choice){
+    undoStack.push(snapshot());
+    if(undoStack.length>150) undoStack.shift();
+    const node = STORY.nodes[S.node];
+    S.log.push({ t: node.title, c: choice.label });
+    applyEffects(choice.effects);
+    const dest = resolveTo(choice.to);
+    if(S.hp < 0) S.hp = 0;
+    enterNode(dest);
+  }
+  function enterNode(id){
+    S.node = id;
+    const node = STORY.nodes[id];
+    if(!S.visited.has(id)){ S.visited.add(id); applyEffects(node.effects); }
+    if(node.ending) achieved.add(node.ending.key);
+    render();
+    window.scrollTo({top:0, behavior:"auto"});
+  }
+  function undo(){
+    if(!undoStack.length || !S) return;
+    restore(undoStack.pop());
+    render();
+  }
+  function startGame(){
+    S = freshState();
+    undoStack = [];
+    enterNode(STORY.startNode);
+  }
+  function drink(){
+    if(!S || itemCount("water")===0 || S.hp>=MAXHP) return;
+    undoStack.push(snapshot());
+    applyEffects({ removeItem:"water" });
+    applyEffects({ hp:+6 });
+    S.log.push({ t: STORY.nodes[S.node].title, c: "(蒸留水を飲んだ)" });
+    render();
+  }
+
+  // ---------- 描画 ----------
+  function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+  function renderStatus(node){
+    $("statusWrap").style.display = "";
+    const hp = Math.max(0, S.hp);
+    $("hpfill").style.width = (hp/MAXHP*100)+"%";
+    $("hpNum").textContent = hp+" / "+MAXHP;
+    const bar = $("hpbar");
+    bar.querySelectorAll(".notch").forEach(n=>n.remove());
+    for(let i=1;i<6;i++){
+      const d=document.createElement("div"); d.className="notch"; d.style.left=(i*100/6)+"%"; bar.appendChild(d);
+    }
+    $("mudfill").style.height = (S.mud*10)+"%";
+    $("mudNum").textContent = S.mud+" / 10";
+    $("stLoc").textContent = node.chapter;
+    const chips = [...S.items].map(([id,n])=>
+      '<span class="chip" title="'+esc(STORY.items[id].desc)+'">'+esc(STORY.items[id].name)+
+      (n>1?'<span class="cnt">×'+n+'</span>':'')+'</span>').join(" ");
+    $("invChips").innerHTML = chips || '<span class="empty">(何も持っていない)</span>';
+    $("btnDrink").style.display = (itemCount("water")>0 && S.hp<MAXHP && !node.ending && !node.death) ? "" : "none";
+  }
+
+  function render(){
+    if(!S){ renderTitle(); return; }
+    const node = STORY.nodes[S.node];
+    renderStatus(node);
+    $("btnUndo").disabled = undoStack.length===0;
+
+    const paras = node.text.split("\n").map((p,i)=>
+      '<p class="para" style="--i:'+i+'">'+esc(p)+"</p>").join("");
+    let html = '<div class="scene"><div class="scene-head">'+
+      '<span class="chap">'+esc(node.chapter)+'</span>'+
+      '<span class="ttl">'+esc(node.title)+'</span></div>'+
+      (node.combat ? '<span class="combat-mark">予兆を読め</span>' : '')+
+      '<div class="scene-text">'+paras+'</div></div>';
+
+    if(node.death){
+      html += '<div class="ending-card tone-death">'+
+        '<div class="ending-eyebrow">落命</div>'+
+        '<div class="ending-name">'+esc(node.title)+'</div>'+
+        '<div class="ending-count">泥は憶えている。選び直せる。</div>'+
+        '<div class="btnrow">'+
+        '<button class="btn revive" id="dUndo">直前に戻る</button>'+
+        '<button class="btn secondary" id="dAgain">最初から</button>'+
+        '<button class="btn secondary" id="dTitle">表題へ</button>'+
+        '</div></div>';
+      main.innerHTML = html;
+      $("dUndo").onclick = undo;
+      $("dAgain").onclick = startGame;
+      $("dTitle").onclick = ()=>{ S=null; undoStack=[]; render(); };
+      return;
+    }
+    if(node.ending){
+      const total = STORY.endingOrder.length;
+      html += '<div class="ending-card tone-'+node.ending.tone+'">'+
+        '<div class="ending-eyebrow">ここに一つの結末</div>'+
+        '<div class="ending-name">'+esc(node.ending.name)+'</div>'+
+        '<div class="ending-count">見届けた結末 '+achieved.size+' / '+total+'</div>'+
+        '<div class="btnrow">'+
+        '<button class="btn" id="edAgain">最初から読み直す</button>'+
+        '<button class="btn secondary" id="edAchv">結末の一覧</button>'+
+        '<button class="btn secondary" id="edTitle">表題へ戻る</button>'+
+        '</div></div>';
+      main.innerHTML = html;
+      $("edAgain").onclick = startGame;
+      $("edAchv").onclick = ()=>openModal("achv");
+      $("edTitle").onclick = ()=>{ S=null; undoStack=[]; render(); };
+      return;
+    }
+    html += '<div class="choices" id="choices"></div>';
+    main.innerHTML = html;
+    const box = $("choices");
+    let num = 0;
+    (node.choices||[]).forEach(ch=>{
+      const okC = evalCond(ch.if);
+      if(!okC && !ch.lockedHint) return;   // 条件不成立かつヒント無しは非表示
+      const btn = document.createElement("button");
+      btn.className = "choice"+(okC?"":" locked");
+      if(okC){
+        num++;
+        btn.innerHTML = '<span class="num">'+num+'</span><span>'+esc(ch.label)+'</span>';
+        btn.dataset.key = num;
+        btn.onclick = ()=>choose(ch);
+      } else {
+        btn.innerHTML = '<span class="num">鎖</span><span>'+esc(ch.label)+
+          '<span class="locked-hint">'+esc(ch.lockedHint)+'</span></span>';
+        btn.setAttribute("aria-disabled","true");
+      }
+      box.appendChild(btn);
+    });
+  }
+
+  function renderTitle(){
+    $("statusWrap").style.display = "none";
+    $("btnUndo").disabled = true;
+    const m = STORY.meta;
+    main.innerHTML =
+      '<div class="title-screen">'+
+      '<div class="title-main">'+esc(m.title)+'</div>'+
+      '<div class="title-sub">'+esc(m.subtitle)+'</div>'+
+      '<div class="title-rule"></div>'+
+      '<div class="title-body">'+
+      '<p class="lead">'+esc(m.intro)+'</p>'+
+      '<ul class="howto">'+m.howto.map(h=>'<li>'+esc(h)+'</li>').join("")+'</ul>'+
+      '<div class="title-btns">'+
+      '<button class="btn" id="tStart">泥海へ潜る</button>'+
+      '<button class="btn secondary" id="tLoad">泥板記録から再開する</button>'+
+      '</div></div></div>';
+    $("tStart").onclick = startGame;
+    $("tLoad").onclick = ()=>openModal("save");
+  }
+
+  // ---------- モーダル ----------
+  const modalBg = $("modalBg"), modalBox = $("modalBox");
+  function closeModal(){ modalBg.classList.remove("open"); }
+  modalBg.addEventListener("click", e=>{ if(e.target===modalBg) closeModal(); });
+
+  function openModal(kind){
+    let html = "";
+    if(kind==="gloss"){
+      html = '<h2>用語集</h2><dl class="gloss">'+
+        STORY.glossary.map(g=>'<dt>'+esc(g.term)+'</dt><dd>'+esc(g.def)+'</dd>').join("")+'</dl>';
+    }
+    if(kind==="items"){
+      const rows = S && S.items.size
+        ? '<dl class="itemlist">'+[...S.items].map(([id,n])=>
+            '<dt>'+esc(STORY.items[id].name)+(n>1?" ×"+n:"")+'</dt><dd>'+esc(STORY.items[id].desc)+'</dd>').join("")+'</dl>'
+        : '<p class="note">いまは何も持っていない。</p>';
+      html = '<h2>所持品</h2>'+rows;
+    }
+    if(kind==="achv"){
+      const rows = STORY.endingOrder.map(key=>{
+        let name=null;
+        for(const id in STORY.nodes){ const e=STORY.nodes[id].ending;
+          if(e && e.key===key){ name=e.name; break; } }
+        const got = achieved.has(key);
+        return '<li class="'+(got?"got":"not")+'"><span class="mark">'+(got?"到達":"未達")+
+          '</span><span>'+(got?esc(name):"???")+'</span></li>';
+      }).join("");
+      html = '<h2>結末の一覧('+achieved.size+' / '+STORY.endingOrder.length+')</h2>'+
+        '<ul class="achv">'+rows+'</ul>'+
+        '<p class="note">結末は全部で'+STORY.endingOrder.length+'種。落命は結末に数えない。</p>';
+    }
+    if(kind==="log"){
+      const lines = S && S.log.length
+        ? S.log.map(l=>'<div class="logline"><span class="lt">'+esc(l.t)+'</span>'+
+            '<span class="lc">→ '+esc(l.c)+'</span></div>').join("")
+        : '<p class="note">まだ遠征記はありません。</p>';
+      html = '<h2>遠征記(たどった選択)</h2>'+lines;
+    }
+    if(kind==="save"){
+      const code = S ? makeCode() : "";
+      html = '<h2>泥板記録(セーブ)</h2>'+
+        '<p class="note">下のコードを控えれば、あとで同じ場所から再開できます。'+
+        '(ブラウザには保存されません)</p>'+
+        '<textarea class="save-area" id="saveOut" readonly>'+esc(code)+'</textarea>'+
+        '<div class="btnrow"><button class="btn" id="copyCode"'+(S?"":" disabled")+'>コードを写す</button></div>'+
+        '<p class="note" style="margin-top:18px">再開するには、控えたコードを貼り付けてください。</p>'+
+        '<textarea class="save-area" id="saveIn" placeholder="ここにコードを貼り付け"></textarea>'+
+        '<div class="btnrow"><button class="btn" id="loadCode">この記録から再開</button></div>'+
+        '<div class="save-msg" id="saveMsg"></div>';
+    }
+    modalBox.innerHTML = html + '<div class="close-row"><button class="btn secondary" id="mClose">閉じる</button></div>';
+    $("mClose").onclick = closeModal;
+    if(kind==="save"){
+      const msg = $("saveMsg");
+      $("copyCode") && ($("copyCode").onclick = ()=>{
+        const ta=$("saveOut"); ta.select();
+        try{ navigator.clipboard ? navigator.clipboard.writeText(ta.value) : document.execCommand("copy");
+          msg.textContent="写しました。安全な場所に控えてください。"; }
+        catch(e){ msg.textContent="全選択されています。手動でコピーしてください。"; }
+      });
+      $("loadCode").onclick = ()=>{
+        const v=$("saveIn").value.trim();
+        if(!v){ msg.textContent="コードが空です。"; return; }
+        try{ loadCode(v); closeModal(); }
+        catch(e){ msg.textContent="コードを読み取れませんでした。写し間違いがないか確認を。"; }
+      };
+    }
+    modalBg.classList.add("open");
+  }
+
+  function makeCode(){
+    const p = { v:2, node:S.node, hp:S.hp, mud:S.mud, items:[...S.items],
+      flags:[...S.flags], visited:[...S.visited], endings:[...achieved], log:S.log.slice(-60) };
+    return btoa(unescape(encodeURIComponent(JSON.stringify(p))));
+  }
+  function loadCode(code){
+    const p = JSON.parse(decodeURIComponent(escape(atob(code))));
+    if(p.v!==2 || !STORY.nodes[p.node]) throw new Error("bad");
+    S = freshState();
+    S.node=p.node; S.hp=p.hp|0; S.mud=p.mud|0;
+    S.items=new Map(p.items||[]); S.flags=new Set(p.flags||[]);
+    S.visited=new Set(p.visited||[]); S.log=p.log||[];
+    achieved = new Set(p.endings||[]);
+    undoStack = [];
+    render();
+    toast("泥板記録から再開しました");
+  }
+
+  // ---------- トースト ----------
+  function toast(text, cls){
+    const box=$("toasts");
+    const el=document.createElement("div");
+    el.className="toast"+(cls?" "+cls:""); el.textContent=text;
+    box.appendChild(el);
+    requestAnimationFrame(()=>el.classList.add("show"));
+    setTimeout(()=>{ el.classList.remove("show"); setTimeout(()=>el.remove(),400); }, 2200);
+  }
+
+  // ---------- 入力 ----------
+  $("btnUndo").onclick = undo;
+  $("btnGloss").onclick = ()=>openModal("gloss");
+  $("btnItems").onclick = ()=>openModal("items");
+  $("btnAchv").onclick = ()=>openModal("achv");
+  $("btnLog").onclick = ()=>openModal("log");
+  $("btnSave").onclick = ()=>openModal("save");
+  $("btnTitle").onclick = ()=>{ S=null; undoStack=[]; render(); };
+  $("btnDrink").onclick = drink;
+  document.addEventListener("keydown", e=>{
+    if(modalBg.classList.contains("open")){ if(e.key==="Escape") closeModal(); return; }
+    if(!S) return;
+    if(e.key>="1" && e.key<="9"){
+      const btn=document.querySelector('.choice[data-key="'+e.key+'"]');
+      if(btn) btn.click();
+    }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
