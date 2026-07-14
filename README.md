@@ -4,7 +4,7 @@
 
 ## ▶ 遊ぶ
 
-**https://<myzunota>.github.io/<gamebooks>/**
+**https://<myzunota>.github.io/<gamebooks>/index.html**
 
 上記URL(GitHub Pages)から作品一覧を開き、読みたい作品を選んでください。
 スマートフォン/PCの両方に対応しています。
