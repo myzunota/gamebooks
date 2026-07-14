@@ -174,16 +174,17 @@
   .itemlist dd{font-size:.84rem;color:var(--ink-dim);line-height:1.8}
 
   /* トースト */
-  .toasts{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:20;
-    display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+  .toasts{position:fixed;top:16px;right:16px;z-index:20;
+    display:flex;flex-direction:column;gap:8px;align-items:flex-end;pointer-events:none}
   .toast{background:var(--panel2);border:1px solid var(--mud);color:var(--ink);
     font-family:var(--sans);font-size:.78rem;letter-spacing:.08em;padding:8px 18px;border-radius:20px;
-    opacity:0;transition:opacity .35s}
+    opacity:0;transition:opacity .35s;pointer-events:auto;cursor:pointer}
   .toast.show{opacity:1}
   .toast.dmg{border-color:var(--danger);color:var(--danger)}
   .toast.heal{border-color:var(--heal);color:var(--heal)}
 
   @media (max-width:600px){
+    .toasts{left:16px;align-items:center}
     .title-main{font-size:2.1rem}
     .st-loc{margin-left:0;width:100%}
     .hpbar{width:110px}
@@ -462,9 +463,15 @@ const STORY = {
       title: "囲炉裏の伝承",
       text: "夜。ヌイ婆の筏で、村の者が囲炉裏を囲んだ。婆は古い唄を低く歌う。\n——昔、大地には根があった。根は臍(ほぞ)の底に繋がれ、世界は固かった。初代の浮き人がその根を抜き、軽さを独り占めた。抜かれた大地はほどけて泥に、根の種は臍の底に沈んだまま——。\n「ただの唄さ」と婆は笑う。「けどね、泥はぜんぶ憶えてるよ」",
       choices: [
-        { label: "唄の続きを、最後まで聞く", effects: { mud: 1 }, to: "hub_v" },
-        { label: "火を落として眠る", to: "hub_v" }
+        { label: "唄の続きを、最後まで聞く", effects: { mud: 1 }, to: "ballad" },
+        { label: "火を落として眠る——体を休める", effects: { hp: 4 }, to: "hub_v" }
       ]
+    },
+    ballad: {
+      chapter: "第一章 黒泥",
+      title: "唄の続き",
+      text: "婆は目を閉じ、囲炉裏の火より低い声で、村の誰も知らない続きの節を歌った。\n——泥は憶えて忘れない 抜いた御手(おんて)も 沈む名も\n臍の底には主がいて 種はまどろみ待っている\n重さ厭わぬ者が来て 泥に掌(て)を差すそのときは\n根は環に還り 環は根に 泥は大地を思い出す——\n歌い終えると婆は、何事もなかったように火に灰をかけた。「ただの唄さ。……さあ、寝な。明日も泥は深いよ」",
+      choices: [{ label: "胸に刻んで、眠る", to: "hub_v" }]
     },
     hub_v: {
       chapter: "第一章 黒泥",
@@ -1185,9 +1192,11 @@ if (typeof module !== "undefined") module.exports = STORY;
     const box=$("toasts");
     const el=document.createElement("div");
     el.className="toast"+(cls?" "+cls:""); el.textContent=text;
+    el.title="クリックで閉じる";
+    el.onclick = ()=>{ el.classList.remove("show"); setTimeout(()=>el.remove(),300); };
     box.appendChild(el);
     requestAnimationFrame(()=>el.classList.add("show"));
-    setTimeout(()=>{ el.classList.remove("show"); setTimeout(()=>el.remove(),400); }, 2200);
+    setTimeout(()=>{ el.classList.remove("show"); setTimeout(()=>el.remove(),400); }, 3400);
   }
 
   // ---------- 入力 ----------
