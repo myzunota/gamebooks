@@ -19,15 +19,20 @@
     background:var(--bg);color:var(--ink);font-family:var(--serif);
     line-height:1.9;min-height:100vh;
   }
-  .wrap{max-width:840px;margin:0 auto;padding:0 20px 80px}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 20px 80px}
 
   header{padding:64px 0 36px;text-align:center}
   h1{font-size:1.6rem;letter-spacing:.5em;text-indent:.5em;font-weight:normal;margin-bottom:10px}
   .tagline{font-family:var(--sans);font-size:.78rem;letter-spacing:.2em;color:var(--ink-dim)}
-  .rule{width:72px;height:1px;background:var(--ink-dim);opacity:.5;margin:26px auto 0}
+  .rule{width:72px;height:1px;background:var(--ink-dim);opacity:.5;margin:24px auto 0}
+  .quick{margin-top:18px;font-family:var(--sans);font-size:.8rem;letter-spacing:.1em}
+  .quick a{color:var(--ink-dim);text-decoration:none;border-bottom:1px dotted var(--ink-dim);padding-bottom:2px}
+  .quick a:hover{color:var(--ink);border-bottom-color:var(--ink)}
+  .quick .sep{color:var(--line);margin:0 10px}
 
-  .shelf{display:grid;gap:26px;margin-top:40px}
-  @media (min-width:700px){ .shelf{grid-template-columns:1fr 1fr} }
+  .shelf{display:grid;gap:26px;margin-top:34px;
+    grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+  @media (min-width:1000px){ .shelf{grid-template-columns:repeat(3,1fr)} }
 
   .book{display:block;text-decoration:none;color:inherit;border:1px solid var(--line);
     border-radius:6px;overflow:hidden;transition:transform .18s ease,border-color .18s ease}
@@ -99,8 +104,13 @@
 <div class="wrap">
   <header>
     <h1>ゲームブック書庫</h1>
-    <p class="tagline">選択肢で分岐する、ブラウザで読む物語</p>
+    <p class="tagline">選択肢で分岐する、ブラウザで読む物語 ― 収録 三作</p>
     <div class="rule"></div>
+    <nav class="quick">
+      <a href="./zankyou_no_umi_gamebook.html">残響の海</a><span class="sep">・</span>
+      <a href="./shizumanu_monotachi_gamebook.html">沈まぬ者たち</a><span class="sep">・</span>
+      <a href="./yoichi_gamebook.html">宵市</a>
+    </nav>
   </header>
 
   <main class="shelf">
@@ -160,7 +170,8 @@
 
   <footer>
     単一HTML・通信不要・セーブはコード方式<br>
-    スマートフォン/PC対応 ― 数字キーでも選択できます
+    スマートフォン/PC対応 ― 数字キーでも選択できます<br>
+    収録 三作 ｜ 書庫の版 2026-07-15
   </footer>
 </div>
 </body>
