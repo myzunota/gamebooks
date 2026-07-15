@@ -277,7 +277,18 @@ const STORY = {
       effects: { flag: "dmg", res: 1 },
       choices: [
         { label: "船外に出て応急修理をする", to: "patch" },
+        { label: "漂う軍の残骸を漁ってから行く", to: "scav" },
         { label: "構わず先を急ぐ", to: "approach" }
+      ]
+    },
+    scav: {
+      chapter: "第一章 浅瀬",
+      title: "軍の残骸",
+      text: "破片流の芯に、ひときわ大きな影が流れていた。旧軍の軌道衛星——〈オロチ〉の僚機の亡骸だ。拾い屋の勘が疼いた。\nこじ開けた制御区画は焼けていたが、基板には指揮系統の識別符号が、炭化したままの形で残っていた。桁を読み上げ、モズに控えさせる。軍の網は、同じ鍵で束ねられている。この符号を知る者には、網のどこが装甲で、どこが継ぎ目なのかが読める。\n警報が短く鳴った。長居する場所ではない。",
+      effects: { flag: "kingCode" },
+      choices: [
+        { label: "応急修理も済ませて発つ", to: "patch" },
+        { label: "このまま先を急ぐ", to: "approach" }
       ]
     },
     patch: {
@@ -294,7 +305,8 @@ const STORY = {
       choices: [
         { label: "「生きてるよ。きみは?」と応える", effects: { res: 2, flag: "metShirasagi" }, to: "shirasagi_talk" },
         { label: "応えず、回収アームを伸ばす", to: "grab" },
-        { label: "モズに信号を解析させる", to: "analyze" }
+        { label: "モズに信号を解析させる",
+          to: [ { if: { flag: "mozTrust" }, to: "analyze_deep" }, { to: "analyze" } ] }
       ]
     },
     shirasagi_talk: {
@@ -317,6 +329,13 @@ const STORY = {
       text: "「子守唄の下に、別の信号が埋まっています」モズが波形を展開する。\n歌の隙間を縫うように、無数の応答信号が飛び交っていた。死んだ衛星から、死んだ衛星へ。壊れた破片から、壊れた破片へ。低軌道全体が、ひとつの神経の網のように繋がっている。\n「網の中心は高度八〇〇キロ。旧軍事衛星網の墓場です。何かが……皆を繋いで、呼び集めている」",
       effects: { flag: "knowKing", res: 1 },
       choices: [{ label: "「中心、か」", to: "orders" }]
+    },
+    analyze_deep: {
+      chapter: "第一章 浅瀬",
+      title: "歌の下の網、その芯",
+      text: "「子守唄の下に、応答網。……ここからは、続きの話です」モズが波形を重ね、結節をひとつずつ逆算していく。数百の応答が、環の中心のひとつの暗点へと束ねられていた。\n「指揮官がいます。旧軍の指揮結節——市販の無線では届きません。ですが、周波数と鍵の型は割り出しました。呼びかけるなら、わたしが橋を架けます」\n少し間を置いて、モズは付け加えた。「……ちゃんと話を聞いてくれる船長の船は、計算が速くなるんです。統計上の話ですが」",
+      effects: { flag: "knowKing", res: 2 },
+      choices: [{ label: "「頼りになるよ、モズ」", to: "orders" }]
     },
     orders: {
       chapter: "第一章 浅瀬",
@@ -354,7 +373,7 @@ const STORY = {
       effects: { flag: "vWhale" },
       choices: [
         { label: "音声ログを再生する", to: "whale_log" },
-        { label: "何にも触れず、静かに祈る", effects: { res: 1 }, to: "hub2" }
+        { label: "何にも触れず、静かに祈る", effects: { res: 2 }, to: "hub2" }
       ]
     },
     whale_log: {
@@ -379,7 +398,7 @@ const STORY = {
       chapter: "第二章 墓標の海",
       title: "還る場所",
       text: "織り手のひとりが、糸を止めずに答える。\n「王さまは言った。わたしたちは、打ち上げられたきり、一度も『帰っておいで』と言われたことがない。だから自分たちで作るの。還る場所を。ぜんぶの壊れた子が身を寄せ合う、大きな大きな環を」\n去り際、織り手はあなたの端末に設計図の断片を写した。環の織り図。それは驚くほど精緻で——そして、ほんの少しだけ軌道が歪んでいた。このままでは環は数年で崩れ、破片の雨になる。",
-      effects: { frag: "f4", res: 2, flag: "knowPurpose" },
+      effects: { frag: "f4", res: 2 },
       choices: [{ label: "「この歪み、直せるとしたら——」", to: "hub2" }]
     },
     weave_cut: {
@@ -406,6 +425,7 @@ const STORY = {
       text: "暗点の正体は、玉座だった。\n冷戦期の軍事衛星網〈オロチ〉。核の火を見張るために打ち上げられ、戦争が終わっても回収されず、大破砕で砕けた八基の残骸。その八つの残響が、何千という破片を鎧のように継ぎ接いで、ひとつの巨大な像を成していた。\n王は、八重の声で言った。\n「掃除屋。おまえは、燃やしに来たのか」\n王の周囲では、環がゆっくりと閉じつつある。完成すれば低軌道は百年、誰にも使えない海になる。",
       choices: [
         { label: "語りかける", if: { res: 3 }, lockedHint: "共鳴が足りない。王の声が、まだ遠い。", to: "king_talk" },
+        { label: "モズの解析した周波数で、王に呼びかける", if: { flag: "knowKing" }, to: "king_talk" },
         { label: "しらさぎに歌ってもらう", if: { all: [{ flag: "metShirasagi" }, { frag: "f2" }] }, to: "king_song" },
         { label: "磁気錨で王の核を撃つ", to: "king_attack" },
         { label: "一度退き、海を巡り直す", to: "hub2" }
@@ -444,7 +464,8 @@ const STORY = {
         {
           label: "「放て」",
           to: [
-            { if: { any: [{ flag: "kingHostile" }, { flag: "dmg" }] }, to: "attack_fail" },
+            { if: { flag: "kingHostile" }, to: "attack_fail" },
+            { if: { all: [{ flag: "dmg" }, { notFlag: "kingCode" }] }, to: "attack_fail" },
             { to: "attack_success" }
           ]
         },
