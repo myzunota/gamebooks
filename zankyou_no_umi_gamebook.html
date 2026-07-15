@@ -149,15 +149,15 @@
   .save-msg{font-family:var(--sans);font-size:.76rem;color:var(--signal);min-height:1.2em;margin-top:6px}
 
   /* トースト */
-  .toasts{position:fixed;top:16px;right:16px;z-index:20;
-    display:flex;flex-direction:column;gap:8px;align-items:flex-end;pointer-events:none}
+  .toasts{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:20;max-width:min(92vw,680px);
+    display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
   .toast{background:var(--panel2);border:1px solid var(--gold-dim);color:var(--gold);
     font-family:var(--sans);font-size:.78rem;letter-spacing:.08em;padding:8px 18px;border-radius:20px;
-    opacity:0;transition:opacity .35s;pointer-events:auto;cursor:pointer}
+    opacity:0;transition:opacity .35s;pointer-events:auto;cursor:pointer;box-shadow:0 0 16px rgba(213,164,94,.5),0 2px 12px rgba(0,0,0,.55);font-size:.82rem}
   .toast.show{opacity:1}
 
   @media (max-width:600px){
-    .toasts{left:16px;align-items:center}
+    .toasts{max-width:calc(100vw - 24px)}
     .scene{grid-template-columns:1fr;gap:12px}
     .scene-title{writing-mode:horizontal-tb;border-left:none;border-bottom:1px solid var(--line);
       padding:0 0 8px}
@@ -815,7 +815,7 @@ if (typeof module !== "undefined") module.exports = STORY;
     el.onclick = ()=>{ el.classList.remove("show"); setTimeout(()=>el.remove(),300); };
     box.appendChild(el);
     requestAnimationFrame(()=>el.classList.add("show"));
-    setTimeout(()=>{ el.classList.remove("show"); setTimeout(()=>el.remove(),400); }, 3400);
+    setTimeout(()=>{ el.classList.remove("show"); setTimeout(()=>el.remove(),400); }, 5000);
   }
 
   // ---------- 入力 ----------

@@ -200,17 +200,17 @@
   .itemlist dd{font-size:.84rem;color:var(--ink-dim);line-height:1.8}
 
   /* トースト */
-  .toasts{position:fixed;top:16px;right:16px;z-index:20;
-    display:flex;flex-direction:column;gap:8px;align-items:flex-end;pointer-events:none}
+  .toasts{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:20;max-width:min(92vw,680px);
+    display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
   .toast{background:var(--panel2);border:1px solid var(--dai);color:var(--ink);
     font-family:var(--sans);font-size:.78rem;letter-spacing:.08em;padding:8px 18px;border-radius:20px;
-    opacity:0;transition:opacity .35s;pointer-events:auto;cursor:pointer}
+    opacity:0;transition:opacity .35s;pointer-events:auto;cursor:pointer;box-shadow:0 0 16px rgba(242,160,61,.55),0 2px 12px rgba(0,0,0,.55);font-size:.82rem}
   .toast.show{opacity:1}
   .toast.dmg{border-color:var(--aka);color:var(--aka)}
   .toast.heal{border-color:var(--heal);color:var(--heal)}
 
   @media (max-width:600px){
-    .toasts{left:16px;align-items:center}
+    .toasts{max-width:calc(100vw - 24px)}
     .title-main{font-size:2.3rem}
     .st-loc{margin-left:0;width:100%}
     .genbar{width:70px}
@@ -1400,7 +1400,7 @@ if (typeof module !== "undefined") module.exports = STORY;
     el.onclick = ()=>{ el.classList.remove("show"); setTimeout(()=>el.remove(),300); };
     box.appendChild(el);
     requestAnimationFrame(()=>el.classList.add("show"));
-    setTimeout(()=>{ el.classList.remove("show"); setTimeout(()=>el.remove(),400); }, 3400);
+    setTimeout(()=>{ el.classList.remove("show"); setTimeout(()=>el.remove(),400); }, 5000);
   }
 
   // ---------- 入力 ----------
