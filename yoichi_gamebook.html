@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>宵市 ― 燈と賽の一夜 ―</title>
+<style>
+  :root{
+    --bg:#131019;          /* 宵闇 */
+    --panel:#1D1728;
+    --panel2:#261E33;
+    --ink:#EAE2D0;         /* 紙白 */
+    --ink-dim:#A2968E;
+    --aka:#E8563F;         /* 提灯朱 */
+    --dai:#F2A03D;         /* 橙の灯 */
+    --paper:#F2E8D5;
+    --heal:#7FB8D8;        /* ラムネ */
+    --line:#332A42;
+    --serif:"Hiragino Mincho ProN","Yu Mincho","BIZ UDMincho","Noto Serif JP","Noto Serif CJK JP",serif;
+    --sans:"Hiragino Kaku Gothic ProN","Yu Gothic Medium","Yu Gothic",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{font-size:16px}
+  body{
+    background:var(--bg);color:var(--ink);font-family:var(--serif);
+    line-height:1.95;min-height:100vh;overflow-x:hidden;
+  }
+  /* 幔幕 */
+  body::before{content:"";position:fixed;top:0;left:0;right:0;height:5px;z-index:5;
+    background:repeating-linear-gradient(90deg,var(--aka) 0 26px,var(--paper) 26px 52px);opacity:.28}
+  /* 宵の帳 */
+  .night{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.7;
+    background:
+      radial-gradient(2px 2px at 14% 20%, rgba(242,160,61,.5) 55%, transparent 56%),
+      radial-gradient(1.5px 1.5px at 78% 12%, rgba(232,86,63,.4) 55%, transparent 56%),
+      radial-gradient(2px 2px at 52% 30%, rgba(242,160,61,.35) 55%, transparent 56%),
+      radial-gradient(1.5px 1.5px at 30% 8%, rgba(242,232,213,.3) 55%, transparent 56%),
+      radial-gradient(2px 2px at 90% 26%, rgba(242,160,61,.4) 55%, transparent 56%),
+      linear-gradient(180deg, rgba(38,30,51,.5) 0%, transparent 34%)}
+  @media (prefers-reduced-motion: no-preference){
+    .para{opacity:0;transform:translateY(8px);animation:rise .7s ease forwards}
+    @keyframes rise{to{opacity:1;transform:none}}
+    .lamp.lit{animation:flicker 3.4s ease-in-out infinite}
+    @keyframes flicker{0%,100%{opacity:1}48%{opacity:.85}52%{opacity:.95}}
+  }
+  .wrap{position:relative;z-index:1;max-width:720px;margin:0 auto;padding:0 20px 96px}
+
+  header{display:flex;align-items:baseline;justify-content:space-between;gap:8px;
+    padding:16px 2px 10px;border-bottom:1px solid var(--line);font-family:var(--sans)}
+  .brand{font-family:var(--serif);letter-spacing:.4em;font-size:.95rem;color:var(--ink-dim);white-space:nowrap}
+  nav{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+  nav button{background:none;border:1px solid var(--line);color:var(--ink-dim);
+    font-family:var(--sans);font-size:.72rem;padding:4px 9px;border-radius:3px;cursor:pointer;letter-spacing:.08em}
+  nav button:hover{border-color:var(--dai);color:var(--dai)}
+  nav button:disabled{opacity:.35;cursor:default}
+  nav button:disabled:hover{border-color:var(--line);color:var(--ink-dim)}
+
+  /* 様態パネル */
+  .status{display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+    margin:14px 0 10px;padding:10px 14px;background:var(--panel);
+    border:1px solid var(--line);border-radius:4px;font-family:var(--sans)}
+  .st-label{font-size:.66rem;letter-spacing:.24em;color:var(--ink-dim)}
+  .st-block{display:flex;align-items:center;gap:8px}
+  .lamps{display:flex;gap:4px}
+  .lamp{width:11px;height:13px;border-radius:5px 5px 6px 6px;border:1px solid #3A3050;background:#221B30;position:relative}
+  .lamp::after{content:"";position:absolute;top:-2px;left:50%;width:3px;height:2px;transform:translateX(-50%);
+    background:#3A3050;border-radius:1px}
+  .lamp.lit{background:radial-gradient(circle at 50% 42%, #FFD98A 0%, var(--dai) 55%, #C25A2A 100%);
+    border-color:var(--dai);box-shadow:0 0 7px rgba(242,160,61,.55)}
+  .st-num{font-size:.78rem;color:var(--ink);min-width:3.4em}
+  .genbar{position:relative;width:96px;height:10px;background:#221B30;border:1px solid var(--line);border-radius:2px;overflow:hidden}
+  .genfill{position:absolute;left:0;top:0;bottom:0;width:0%;
+    background:linear-gradient(90deg,#8A5FA8,#C793E8)}
+  .st-gennum{font-size:.78rem;color:#C793E8;min-width:2.8em}
+  .drink{background:none;border:1px solid var(--heal);color:var(--heal);border-radius:3px;
+    font-family:var(--sans);font-size:.72rem;letter-spacing:.1em;padding:4px 10px;cursor:pointer}
+  .drink:hover{background:rgba(127,184,216,.1)}
+  .st-loc{margin-left:auto;font-size:.72rem;letter-spacing:.15em;color:var(--ink-dim)}
+  .inv{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin:0 0 24px;
+    padding:7px 14px;background:var(--panel);border:1px solid var(--line);border-radius:4px;font-family:var(--sans)}
+  .inv .st-label{flex-shrink:0}
+  .chip{font-size:.74rem;color:var(--ink);border:1px solid var(--aka);border-radius:12px;
+    padding:2px 10px;letter-spacing:.05em;cursor:default}
+  .chip .cnt{color:var(--dai);margin-left:2px}
+  .inv .empty{font-size:.74rem;color:var(--ink-dim)}
+
+  /* 場面 */
+  .scene{margin-bottom:32px}
+  .scene-head{margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid var(--line);position:relative}
+  .scene-head::after{content:"";position:absolute;right:0;bottom:-1px;width:96px;height:1px;background:var(--aka)}
+  .scene-head .chap{display:block;font-family:var(--sans);font-size:.68rem;letter-spacing:.4em;color:var(--ink-dim);margin-bottom:4px}
+  .scene-head .ttl{font-size:1.45rem;letter-spacing:.22em;color:var(--paper);
+    text-shadow:0 0 14px rgba(242,160,61,.35)}
+  .scene-text p{margin-bottom:1.15em;font-size:1.02rem;text-align:justify}
+  .para{animation-delay:calc(var(--i) * .12s)}
+
+  /* 選択肢 */
+  .choices{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+  .choice{display:flex;gap:12px;align-items:baseline;text-align:left;width:100%;
+    background:var(--panel);border:1px solid var(--line);border-radius:4px;
+    color:var(--ink);font-family:var(--serif);font-size:.98rem;line-height:1.7;
+    padding:13px 16px;cursor:pointer;transition:border-color .15s,background .15s}
+  .choice:hover{border-color:var(--dai);background:var(--panel2)}
+  .choice:focus-visible{outline:2px solid var(--heal);outline-offset:2px}
+  .choice .num{font-family:var(--sans);font-size:.72rem;color:var(--dai);letter-spacing:.1em;min-width:1.2em}
+  .choice.locked{cursor:default;opacity:.55;border-style:dashed}
+  .choice.locked:hover{border-color:var(--line);background:var(--panel)}
+  .choice.locked .num{color:var(--ink-dim)}
+  .locked-hint{display:block;font-size:.76rem;color:var(--aka);margin-top:4px;font-family:var(--sans);letter-spacing:.04em}
+
+  /* 遊戯 */
+  .game-box{margin-top:10px;padding:18px 16px;background:var(--panel);
+    border:1px dashed var(--dai);border-radius:5px}
+  .game-prompt{font-family:var(--sans);font-size:.8rem;letter-spacing:.12em;color:var(--dai);margin-bottom:14px}
+  .game-note{font-family:var(--sans);font-size:.76rem;color:var(--ink-dim);margin-top:10px;min-height:1.2em;line-height:1.8}
+  .gbtns{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+  .gbtn{background:none;border:1px solid var(--paper);color:var(--paper);border-radius:3px;
+    font-family:var(--serif);font-size:.95rem;letter-spacing:.14em;padding:10px 22px;cursor:pointer}
+  .gbtn:hover{background:rgba(242,232,213,.07);border-color:var(--dai);color:var(--dai)}
+  .gbtn.sub{border-color:var(--line);color:var(--ink-dim);font-size:.8rem;font-family:var(--sans)}
+  .gbtn.sub:hover{border-color:var(--ink-dim);color:var(--ink);background:none}
+  .gbtn:disabled{opacity:.4;cursor:default}
+  .dice-stage{display:flex;gap:18px;justify-content:center;align-items:center;
+    font-size:3rem;min-height:74px;margin:8px 0;color:var(--paper)}
+  .die{display:inline-block;text-shadow:0 0 12px rgba(242,232,213,.3)}
+  .game-result{text-align:center;font-size:1.05rem;letter-spacing:.2em;margin-top:6px;min-height:1.6em}
+  .game-result.win{color:var(--dai)} .game-result.lose{color:var(--aka)}
+  .tbar-wrap{margin:14px 0 4px}
+  .tbar{position:relative;height:34px;background:#221B30;border:1px solid var(--line);border-radius:4px;overflow:hidden;cursor:pointer}
+  .tzone{position:absolute;top:0;bottom:0;background:rgba(242,160,61,.22);border-left:1px solid rgba(242,160,61,.6);border-right:1px solid rgba(242,160,61,.6)}
+  .tbig{position:absolute;top:0;bottom:0;background:rgba(232,86,63,.4)}
+  .tmarker{position:absolute;top:-2px;bottom:-2px;width:3px;background:var(--paper);box-shadow:0 0 8px rgba(242,232,213,.7);left:0}
+  .tlegend{display:flex;justify-content:center;gap:18px;font-family:var(--sans);font-size:.68rem;color:var(--ink-dim);margin-top:6px}
+  .tlegend .l1::before{content:"■ ";color:rgba(242,160,61,.7)}
+  .tlegend .l2::before{content:"■ ";color:rgba(232,86,63,.8)}
+
+  /* 終幕・落命 */
+  .ending-card{margin-top:30px;padding:22px 20px;text-align:center;border:1px solid var(--dai);
+    border-radius:4px;background:linear-gradient(180deg,var(--panel),#171221)}
+  .ending-card.tone-true{border-color:var(--paper);box-shadow:0 0 26px rgba(242,232,213,.16)}
+  .ending-card.tone-dark{border-color:var(--aka)}
+  .ending-card.tone-warm{border-color:var(--dai)}
+  .ending-card.tone-still{border-color:var(--line)}
+  .ending-card.tone-death{border-color:#3A3050;background:linear-gradient(180deg,#171221,#110D18)}
+  .ending-eyebrow{font-family:var(--sans);font-size:.68rem;letter-spacing:.4em;color:var(--ink-dim);margin-bottom:10px}
+  .ending-name{font-size:1.25rem;letter-spacing:.25em;color:var(--paper);margin-bottom:16px}
+  .ending-card.tone-death .ending-name{color:var(--ink-dim)}
+  .ending-count{font-family:var(--sans);font-size:.75rem;color:var(--ink-dim);margin-bottom:18px}
+  .ending-card .btnrow{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .btn{background:none;border:1px solid var(--dai);color:var(--dai);border-radius:3px;
+    font-family:var(--sans);font-size:.8rem;letter-spacing:.12em;padding:9px 18px;cursor:pointer}
+  .btn:hover{border-color:var(--paper);color:var(--paper);background:rgba(242,232,213,.05)}
+  .btn.secondary{border-color:var(--line);color:var(--ink-dim)}
+  .btn.secondary:hover{color:var(--ink);border-color:var(--ink-dim);background:none}
+  .btn.revive{border-color:var(--heal);color:var(--heal)}
+  .btn.revive:hover{background:rgba(127,184,216,.08)}
+
+  /* タイトル画面 */
+  .title-screen{padding:44px 0 20px;max-width:560px}
+  .garland{display:flex;gap:10px;margin-bottom:22px}
+  .garland i{width:12px;height:15px;border-radius:5px 5px 7px 7px;
+    background:radial-gradient(circle at 50% 42%, #FFD98A 0%, var(--dai) 55%, #C25A2A 100%);
+    box-shadow:0 0 9px rgba(242,160,61,.6)}
+  .garland i:nth-child(2n){background:radial-gradient(circle at 50% 42%, #FFB9A0 0%, var(--aka) 60%, #8E2F1E 100%);
+    box-shadow:0 0 9px rgba(232,86,63,.5)}
+  .title-main{font-size:3.4rem;letter-spacing:.34em;line-height:1.3;color:var(--paper);
+    text-shadow:0 0 22px rgba(242,160,61,.5),0 0 60px rgba(232,86,63,.25);margin-bottom:6px}
+  .title-sub{font-size:.9rem;letter-spacing:.3em;color:var(--ink-dim);margin-bottom:24px}
+  .title-body .lead{font-size:.95rem;color:var(--ink);margin-bottom:22px;text-align:justify}
+  .howto{font-family:var(--sans);font-size:.78rem;color:var(--ink-dim);line-height:1.9;
+    border:1px solid var(--line);border-radius:4px;padding:14px 16px;margin-bottom:24px}
+  .howto li{list-style:none;padding-left:1em;text-indent:-1em;margin-bottom:4px}
+  .howto li::before{content:"—";margin-right:.5em;color:var(--aka)}
+  .title-btns{display:flex;flex-direction:column;gap:10px;max-width:280px}
+
+  /* モーダル */
+  .modal-bg{position:fixed;inset:0;background:rgba(9,6,14,.85);z-index:10;display:none;
+    align-items:flex-start;justify-content:center;padding:6vh 16px}
+  .modal-bg.open{display:flex}
+  .modal{background:var(--panel);border:1px solid var(--line);border-radius:5px;
+    max-width:560px;width:100%;max-height:82vh;overflow-y:auto;padding:22px 24px}
+  .modal h2{font-size:1rem;letter-spacing:.3em;color:var(--paper);margin-bottom:16px;font-weight:normal}
+  .modal .close-row{text-align:right;margin-top:18px}
+  .gloss dt{color:var(--dai);font-size:.92rem;margin-top:14px;letter-spacing:.06em}
+  .gloss dd{font-size:.86rem;color:var(--ink-dim);line-height:1.85;margin-top:2px}
+  .achv{list-style:none}
+  .achv li{display:flex;gap:12px;align-items:baseline;padding:9px 2px;border-bottom:1px dashed var(--line);font-size:.9rem}
+  .achv .mark{font-family:var(--sans);font-size:.7rem;min-width:3.2em;letter-spacing:.1em}
+  .achv .got .mark{color:var(--dai)} .achv .got{color:var(--ink)}
+  .achv .not{color:var(--ink-dim)} .achv .not .mark{color:var(--line)}
+  .logline{font-size:.86rem;padding:7px 0;border-bottom:1px dashed var(--line);line-height:1.7}
+  .logline .lt{color:var(--ink-dim)} .logline .lc{color:var(--dai);font-size:.8rem;display:block}
+  .save-area{width:100%;background:#171221;color:var(--heal);border:1px solid var(--line);
+    border-radius:3px;font-family:monospace;font-size:.72rem;padding:10px;min-height:96px;
+    word-break:break-all;line-height:1.5}
+  .modal .note{font-family:var(--sans);font-size:.74rem;color:var(--ink-dim);margin:8px 0;line-height:1.7}
+  .modal .btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .save-msg{font-family:var(--sans);font-size:.76rem;color:var(--heal);min-height:1.2em;margin-top:6px}
+  .itemlist dt{color:var(--ink);font-size:.92rem;margin-top:12px}
+  .itemlist dd{font-size:.84rem;color:var(--ink-dim);line-height:1.8}
+
+  /* トースト */
+  .toasts{position:fixed;top:16px;right:16px;z-index:20;
+    display:flex;flex-direction:column;gap:8px;align-items:flex-end;pointer-events:none}
+  .toast{background:var(--panel2);border:1px solid var(--dai);color:var(--ink);
+    font-family:var(--sans);font-size:.78rem;letter-spacing:.08em;padding:8px 18px;border-radius:20px;
+    opacity:0;transition:opacity .35s;pointer-events:auto;cursor:pointer}
+  .toast.show{opacity:1}
+  .toast.dmg{border-color:var(--aka);color:var(--aka)}
+  .toast.heal{border-color:var(--heal);color:var(--heal)}
+
+  @media (max-width:600px){
+    .toasts{left:16px;align-items:center}
+    .title-main{font-size:2.3rem}
+    .st-loc{margin-left:0;width:100%}
+    .genbar{width:70px}
+  }
+</style>
+</head>
+<body>
+<div class="night" aria-hidden="true"></div>
+<div class="wrap">
+  <header>
+    <div class="brand">宵市</div>
+    <nav>
+      <button id="btnUndo" title="直前の選択をやり直す">一手戻る</button>
+      <button id="btnLog">夜歩き録</button>
+      <button id="btnItems">持ち物</button>
+      <button id="btnGloss">用語集</button>
+      <button id="btnAchv">結末</button>
+      <button id="btnSave">絵馬記録</button>
+      <button id="btnTitle">表題へ</button>
+    </nav>
+  </header>
+  <div id="statusWrap" style="display:none">
+    <div class="status">
+      <div class="st-block">
+        <span class="st-label">灯</span>
+        <div class="lamps" id="lamps"></div>
+        <span class="st-num" id="hpNum"></span>
+      </div>
+      <div class="st-block">
+        <span class="st-label">験</span>
+        <div class="genbar"><div class="genfill" id="genfill"></div></div>
+        <span class="st-gennum" id="genNum"></span>
+      </div>
+      <button class="drink" id="btnDrink" style="display:none">ラムネを飲む(+3)</button>
+      <div class="st-loc" id="stLoc"></div>
+    </div>
+    <div class="inv"><span class="st-label">持ち物</span><span id="invChips"></span></div>
+  </div>
+  <main id="main" aria-live="polite"></main>
+</div>
+
+<div class="modal-bg" id="modalBg" role="dialog" aria-modal="true">
+  <div class="modal" id="modalBox"></div>
+</div>
+<div class="toasts" id="toasts"></div>
+
+<script>
+// ============================================================
+// 『宵市』 物語データ — 単一の真実源
+// 条件DSL: {gen:n}=験n以上 / {hpLte:n}=灯n以下 / {item:"x"} /
+//          {flag:"x"} / {notFlag:"x"} / {all:[..]} / {any:[..]}
+// 効果:    {hp:±n, gen:±n, item:"x", n:個数, removeItem:"x",
+//           flag:"x"|[..], unflag:"x"}
+// choice.to: 文字列 or [{if:cond,to:"id"},{to:"既定"}]
+// game: {type:"dice"|"timing", ...} = 遊戯ノード(選択肢の代わりに遊戯で分岐)
+//   dice:   丁半。win/lose を持つ。いかさま賽=必勝、お守り=敗け自動打ち消し、
+//           験3以上=験-3で振り直し(エンジン側機構)
+//   timing: 目押し。win/lose(+任意でbig)。験1につき成功域+8%
+// death:true = 落命ノード(結末には数えない) / reaction:true = 字数緩和
+// ============================================================
+const STORY = {
+  meta: {
+    title: "宵市",
+    subtitle: "燈と賽の一夜",
+    maxhp: 12,
+    maxgen: 10,
+    intro: "村祭りの晩、妹のヒナが消えた。連なる鳥居の奥、あるはずのない参道の先に、その市はあった。宵市——金の要らない夜店の列。ここで人が賭けるのは、灯(ともしび)と、名前だ。ヒナは自分の名を賭けて、負けた。名を失った者は、朝が来ると忘れられて消える。夜が明けるまでに、取り返す。",
+    howto: [
+      "【灯】…… あなたの命の火。遊戯に負けると減り、尽きれば提灯にされます。ラムネで戻せます。",
+      "【験(げん)】…… 縁起の力。担げば貯まり、注げば賽を振り直せます。目押しの成功域も広がります。",
+      "【丁半】…… 賽の目の丁(偶数)か半(奇数)を張る運試し。いかさま賽やお守りが流れを変えます。",
+      "【目押し】…… 動く針を頃合いで止める遊戯。的の内で止めれば勝ち。中心なら大当たり。",
+      "結末は全部で六つ。灯が尽きても「直前に戻る」で選び直せます。"
+    ]
+  },
+  glossary: [
+    { term: "宵市(よいいち)", def: "鳥居の奥に立つ、終わらない夜店の市。金は通じない。通じるのは灯と、名前と、それに類するもの。" },
+    { term: "灯(ともしび)", def: "命の火。宵市における賭け銭。尽きた者は提灯に仕立てられ、市を照らす側に回る。" },
+    { term: "験(げん)", def: "縁起の力。手水、願掛け、施し——担げば貯まり、注げば賽の流れを変える。" },
+    { term: "元締(もとじめ)", def: "宵市を仕切る白い翁面の男。どんな賭けでも、条件さえ言えば受けるという。" },
+    { term: "名札の森", def: "賭けで取られた名前が短冊にされ、笹に吊るされている場所。名は釘では留まらぬのに、誰にも外せない。" },
+    { term: "提灯衆(ちょうちんしゅう)", def: "灯を賭け尽くした客のなれの果て。市の軒先で、今夜も静かに揺れている。" },
+    { term: "木札(きふだ)", def: "奥の大賭場に通される客の証。賭場で勝つか、よほどの伝手がなければ持てない。" },
+    { term: "最初の賽", def: "宵市が立った晩、最初の賭けに使われたという賽。市の理(ことわり)は、この一粒から転がり出たと噂される。" },
+    { term: "狐面(きつねめん)", def: "市の側の者がつける面。かぶれば鬼の目も誤魔化せるというが、素性は知れない。" }
+  ],
+  items: {
+    ramune:  { name: "ラムネ",       desc: "硝子玉の鳴る冷たい一本。飲めば灯が3戻る。" },
+    cheat:   { name: "いかさま賽",   desc: "重心の細工された賽。一度だけ、丁半に必ず勝てる。" },
+    omamori: { name: "お守り",       desc: "甘酒屋の婆の手縫い。賽の負けを一度だけ、なかったことにしてくれる。" },
+    kitsune: { name: "狐面",         desc: "市の側の者の面。かぶれば、鬼の誰何もすり抜けられる。" },
+    kifuda:  { name: "木札",         desc: "奥の大賭場へ通される客の証。焼印の跡がまだ温かい。" },
+    fish:    { name: "金魚のリン",   desc: "掬い上げた赤い金魚。硝子鉢の中から、鈴の音のような声で何かを囁く。" },
+    hatsusai:{ name: "最初の賽",     desc: "井戸の底から上がった、骨のように白い賽。振らずとも、掌の中でかすかに脈打つ。" }
+  },
+  startNode: "p_start",
+  nodes: {
+    // ---------- 序 ----------
+    p_start: {
+      chapter: "序 宵",
+      title: "祭りの晩",
+      text: "手を繋いでいたはずだった。\n綿飴の袋、林檎飴の赤、金魚の袋を提げた子どもら。村祭りの雑踏の中で、妹のヒナの手が、ふっと軽くなった。\n振り返ると、いない。呼んでも、いない。露店の男は首を振り、社務所の年寄りは目を伏せて言った。「……鳥居の数を、数えてみな」\n参道の鳥居は七本のはずだ。いま、奥に向かって——九本ある。",
+      choices: [
+        { label: "九本目の鳥居の奥へ走る", to: "p_torii" },
+        { label: "一度息を整え、提灯の火を見る", effects: { gen: 1 }, to: "p_torii" }
+      ]
+    },
+    p_torii: {
+      chapter: "序 宵",
+      title: "九本目の先",
+      text: "九本目をくぐると、蝉の声が消えた。\n参道の先に、あるはずのない市が立っていた。連なる提灯、軒を並べる夜店、行き交う客——だが、よく見れば客の影は薄く、提灯の灯りはどれも、人の顔のような色をしている。\n道の真ん中に、狐の面をつけた童(わらべ)が立っていた。「いらっしゃい。宵市は、はじめてかい」",
+      choices: [{ label: "「妹を捜している」", to: "p_gate" }]
+    },
+    p_gate: {
+      chapter: "序 宵",
+      title: "木戸銭",
+      text: "童は面の奥でくすりと笑った。「名無しの妹なら、奥の帳場だよ。……ああ、でもお客さん、宵市は木戸銭が要るんだ。金じゃないよ。あんたの持ち物から、ひとつ」\n童が指を三本立てる。「思い出をひとつ。声を今夜だけ。それか、髪をひと房。どれでもいいよ」",
+      choices: [
+        { label: "思い出をひとつ、差し出す", effects: { flag: "paid_memory" }, to: "p_enter" },
+        { label: "声を今夜だけ、預ける", effects: { flag: "paid_voice" }, to: "p_enter" },
+        { label: "髪をひと房、切って渡す", effects: { flag: "paid_hair" }, to: "p_enter" }
+      ]
+    },
+    p_enter: {
+      chapter: "序 宵",
+      title: "宵市",
+      text: "童が受け取ったそれを袂に落とすと、市の音が一斉に近くなった。売り声、下駄の音、油の爆ぜる音。\n「奥の大賭場に入るには木札が要る。木札は賭場で勝つのが早道だね。それと——」童は声を低くした。「験(げん)は担いでおきな。この市じゃ、験は銭より強いよ」\n狐面の童は、雑踏に溶けて消えた。",
+      choices: [{ label: "夜店の並びへ", to: "hub1" }]
+    },
+    // ---------- 夜店(第一夜) ----------
+    hub1: {
+      chapter: "一夜 夜店",
+      title: "夜店の並び",
+      text: "提灯の川の下に、夜店が並ぶ。\n的の鈴が鳴る射的。莚(むしろ)を敷いた丁半の賭場。盥(たらい)に赤の泳ぐ金魚すくい。狐面を吊るした面屋。奥まった稲荷の祠。呼び込みのだみ声は見世物小屋。湯気の立つ甘酒の屋台。\nそして通りの突き当たり、笹の茂る暗がり——名札の森へと、道は続いている。",
+      choices: [
+        { label: "射的の的屋へ", if: { notFlag: "done_shateki" }, to: "shateki1" },
+        { label: "丁半の莚へ", if: { notFlag: "done_chou" }, to: "chou1" },
+        { label: "金魚すくいの盥へ", if: { notFlag: "done_kingyo" }, to: "kingyo1" },
+        { label: "面屋の張り見世へ", if: { notFlag: "done_men" }, to: "men1" },
+        { label: "稲荷の祠に寄る", if: { notFlag: "done_inari" }, to: "inari1" },
+        { label: "見世物小屋を覗く", if: { notFlag: "done_mise" }, to: "mise" },
+        { label: "甘酒の屋台で一服", if: { notFlag: "done_ama" }, to: "ama" },
+        { label: "名札の森へ進む", to: "mori1" }
+      ]
+    },
+    shateki1: {
+      chapter: "一夜 夜店",
+      title: "射的",
+      text: "「一発、灯ひとつだよ」と的屋の姥(うば)が言う。棚には景品——硝子玉の鳴るラムネ、それに最上段、布に包まれた小さな賽がひとつ。「あれは中心(まんなか)の鈴を撃ち抜いた客にだけさ。景品は一人ひとつ、それが決まりだ」\nコルク銃は軽い。狙いは、揺れる。",
+      choices: [
+        { label: "灯をひとつ賭け、銃を取る", to: "shateki_g" },
+        { label: "並びへ戻る", to: "hub1" }
+      ]
+    },
+    shateki_g: {
+      chapter: "一夜 夜店",
+      title: "射的 ― 目押し",
+      game: {
+        type: "timing", speed: 2.4, zone: 16, big: 5,
+        prompt: "的が左右に流れる。頃合いで引き金を。",
+        win:  { effects: { item: "ramune", flag: "done_shateki" }, to: "shateki_win" },
+        big:  { effects: { item: "cheat", flag: "done_shateki" }, to: "shateki_big" },
+        lose: { effects: { hp: -1 },
+          to: [ { if: { hpLte: 0 }, to: "death_lantern" }, { to: "shateki1" } ] }
+      },
+      text: "姥が的の縄を引くと、鈴のついた的がゆらり、ゆらりと流れはじめた。外せば灯をひとつ、姥の帳面に付く。\n呼吸をひとつ。的の流れと、指の頃合いを合わせる。"
+    },
+    shateki_win: {
+      chapter: "一夜 夜店",
+      title: "硝子玉の音",
+      text: "コルク玉が的の縁を弾き、鈴がころんと鳴った。「当たりだよ」姥は棚からラムネを一本、無造作に寄越した。壜の中で硝子玉が涼しい音を立てる。\n「灯の減った晩には効くよ。……最上段? あれは中心を抜いた客だけって言ったろう」",
+      choices: [{ label: "並びへ戻る", to: "hub1" }]
+    },
+    shateki_big: {
+      chapter: "一夜 夜店",
+      title: "中心の鈴",
+      text: "コルク玉は吸い込まれるように飛び、中心の鈴を真後ろへ撃ち抜いた。姥がひゅうと口笛を吹く。\n「大したもんだ。約束は約束さ」\n布包みの中身は、賽がひとつ。持ってみると、妙に手に馴染む——重心が、細工されている。いかさま賽だ。「使いどころは、間違えなさんな」",
+      choices: [{ label: "並びへ戻る", to: "hub1" }]
+    },
+    chou1: {
+      chapter: "一夜 夜店",
+      title: "丁半の莚",
+      text: "莚の上、壺振りの男が笊(ざる)で賽を転がして見せる。「灯ふたつから。勝てば倍……いや、あんたには木札を付けよう。奥へ行きたい顔をしてる」\n周りの客がうっすらと笑う。よく見ればその何人かは、輪郭が提灯の色に透けはじめていた。",
+      choices: [
+        { label: "灯をふたつ賭け、莚に座る", to: "chou_g" },
+        { label: "並びへ戻る", to: "hub1" }
+      ]
+    },
+    chou_g: {
+      chapter: "一夜 夜店",
+      title: "丁半 ― 壺",
+      game: {
+        type: "dice", stake: 2,
+        prompt: "壺が伏せられた。丁か、半か。",
+        win:  { effects: { item: "kifuda", flag: "done_chou" }, to: "chou_win" },
+        lose: { effects: { hp: -2 },
+          to: [ { if: { hpLte: 0 }, to: "death_lantern" }, { to: "chou1" } ] }
+      },
+      text: "壺振りの手の中で賽がふた粒、乾いた音を立てて回り、莚に伏せられた壺の中へ落ちた。輪郭の薄い客たちが、首だけでこちらを覗き込む。「さあ張った、張った」"
+    },
+    chou_win: {
+      chapter: "一夜 夜店",
+      title: "木札",
+      text: "壺が開き、賽の目があなたの側についた。壺振りは眉ひとつ動かさず、焼印の押された木札を莚に滑らせた。\n「奥の大賭場、その木戸の通り札だ。……悪いことは言わない。勝ち逃げってのはね、この市でいちばん難しい芸当だよ」",
+      choices: [{ label: "並びへ戻る", to: "hub1" }]
+    },
+    kingyo1: {
+      chapter: "一夜 夜店",
+      title: "金魚すくい",
+      text: "盥の中を、赤がひらひらと泳いでいる。ほかの金魚が作り物めいて動かない中、一匹だけ、こちらを見上げてくる赤がいた。口が動く。声は、水越しで聞こえない。\n「一すくい、灯ひとつ」と店主が紙の枠(ポイ)を差し出した。",
+      choices: [
+        { label: "灯をひとつ賭け、ポイを取る", to: "kingyo_g" },
+        { label: "並びへ戻る", to: "hub1" }
+      ]
+    },
+    kingyo_g: {
+      chapter: "一夜 夜店",
+      title: "金魚すくい ― 目押し",
+      game: {
+        type: "timing", speed: 1.8, zone: 26, big: 8,
+        prompt: "赤が枠の上を横切る。頃合いで掬い上げろ。",
+        win:  { effects: { flag: "done_kingyo" }, to: "kingyo_win" },
+        big:  { effects: { flag: "done_kingyo" }, to: "kingyo_win" },
+        lose: { effects: { hp: -1 },
+          to: [ { if: { hpLte: 0 }, to: "death_lantern" }, { to: "kingyo1" } ] }
+      },
+      text: "紙一枚のポイは、水に浸せば数呼吸で破れる。あの赤が枠の真上に来る、その一瞬に賭けるしかない。水面の揺れを読み、手首の力を抜く。"
+    },
+    kingyo_win: {
+      chapter: "一夜 夜店",
+      title: "鈴の声",
+      text: "掬い上げた椀の中で、赤い金魚が跳ねた——「ありがと」\n鈴を転がすような声だった。「あたし、リン。ここの金魚じゃないの。呑まれただけ。……ねえ、あんた、いい目をしてる。連れてって。役に立つよ」\n店主は素知らぬ顔で次の客を呼んでいる。",
+      choices: [
+        { label: "硝子鉢ごと、連れて行く", effects: { item: "fish" }, to: "hub1" },
+        { label: "「達者でな」——盥の外の水路に放す", effects: { gen: 2 }, to: "hub1" }
+      ]
+    },
+    men1: {
+      chapter: "一夜 夜店",
+      title: "面屋",
+      text: "軒いっぱいに面が吊るされている。ひょっとこ、おかめ、鬼。その奥に、市の者がつけているのと同じ狐面が一枚。\n「それは売り物じゃない」と面打ちの男が言った。「型抜きの上がりだ。この菓子板から、狐の型を欠けさせず抜けたらやろう。——しくじれば灯ひとつ、もらうがね」",
+      choices: [
+        { label: "灯をひとつ賭け、針を取る", to: "men_g" },
+        { label: "並びへ戻る", to: "hub1" }
+      ]
+    },
+    men_g: {
+      chapter: "一夜 夜店",
+      title: "型抜き ― 目押し",
+      game: {
+        type: "timing", speed: 2.8, zone: 10, big: 4,
+        prompt: "針先の震えが、菓子板の上を往復する。息を止め、頃合いで一気に。",
+        win:  { effects: { item: "kitsune", flag: "done_men" }, to: "men_win" },
+        big:  { effects: { item: "kitsune", gen: 1, flag: "done_men" }, to: "men_win" },
+        lose: { effects: { hp: -1 },
+          to: [ { if: { hpLte: 0 }, to: "death_lantern" }, { to: "men1" } ] }
+      },
+      text: "狐の型は、耳の付け根がいちばん薄い。針の震えが板の上を行き来する。急げば割れる。遅れても、割れる。息を殺すと、市の喧噪がすっと遠のいた。"
+    },
+    men_win: {
+      chapter: "一夜 夜店",
+      title: "狐の面",
+      text: "ぱき、と乾いた音を立てて、狐の型が板から抜けた。欠けは、ない。\n面打ちの男はしばらく黙り、それから約束通り、奥の狐面を下ろして寄越した。「……かぶれば、鬼の目にはあんたも市の側だ。ただし、面の下の顔を忘れるなよ。忘れた奴から、面になる」",
+      choices: [{ label: "並びへ戻る", to: "hub1" }]
+    },
+    inari1: {
+      chapter: "一夜 夜店",
+      title: "稲荷の祠",
+      effects: { flag: "done_inari" },
+      text: "夜店の並びの切れ目に、小さな稲荷の祠があった。祠の前だけ、夜気がわずかに涼しい。手水鉢の水は、この市で唯一、提灯の色を映さず澄んでいる。\n狛狐の足元には、参った客の残した短冊が幾つか結ばれていた。願いの文字は、どれも滲んでいる。",
+      choices: [
+        { label: "手水で清め、深く参る", effects: { gen: 2 }, to: "inari2" },
+        { label: "拝まずに戻る", to: "hub1" }
+      ]
+    },
+    inari2: {
+      chapter: "一夜 夜店",
+      title: "願い短冊",
+      text: "参り終えて顔を上げると、社の陰から白い手が、筆と真新しい短冊を差し出していた。誰の手かは、見ないほうがいい気がした。\n願いは、書けば叶うものではない。ただ、書いた分だけ験が寄る——祭りの願掛けとは、そういうものだと祖母が言っていた。\n書くなら、ひとつだけ。",
+      choices: [
+        { label: "「妹と、朝を見る」と書いて結ぶ", effects: { gen: 1 }, to: "hub1" },
+        { label: "何も書かずに戻る", to: "hub1" }
+      ]
+    },
+    mise: {
+      chapter: "一夜 夜店",
+      title: "見世物小屋",
+      effects: { flag: "done_mise" },
+      text: "幕の内は、提灯の蔵だった。梁からずらりと下がる提灯、提灯、提灯——そのどれもが、かすかに人の寝息の音を立てている。\n「灯を賭け尽くした客の、なれの果てさ」と木戸番が言った。「それでもまだ可愛いほうだ。昔、\"朝\"を賭けた男がいてね。負けて、その男の村からは朝が消えた。今もどこかで祭りの晩が続いてるんだと。——賭けるものは、選ぶんだね」",
+      choices: [
+        { label: "提灯たちに手を合わせる", effects: { gen: 1 }, to: "hub1" },
+        { label: "目を逸らして出る", to: "hub1" }
+      ]
+    },
+    ama: {
+      chapter: "一夜 夜店",
+      title: "甘酒の屋台",
+      effects: { flag: "done_ama" },
+      text: "湯気の向こうで、婆がひとり、甘酒を掻き回していた。「おや、生きた客だね。珍しい」\n差し出された椀は熱く、甘く、腹の底で灯がふくらむのが分かった。婆は代金を取らず、代わりに手縫いのお守りを袂に押し込んでくる。「賽ってのは薄情だからね。一度くらいは、これが庇ってくれるよ」",
+      effectsNote: "",
+      choices: [
+        { label: "礼を言い、椀を返す", effects: { hp: 2, item: "omamori" }, to: "hub1" }
+      ]
+    },
+    // ---------- 名札の森 ----------
+    mori1: {
+      chapter: "二夜 名札の森",
+      title: "笹の暗がり",
+      text: "夜店の灯りが背中に遠のき、下駄の音が絶え、笹の葉擦れだけが残った。\n径(みち)は三つ。短冊の白がちらちらと覗く森の奥。ぽつり、ぽつりと灯の並ぶ細い径。そして笹薮を突っ切る、真っ暗な近道——市の提灯の明かりが、そこだけ届いていない。",
+      choices: [
+        { label: "短冊の茂る奥へ", to: "mori2" },
+        { label: "灯の並ぶ径へ", if: { notFlag: "done_hiwake" }, to: "hitowake" },
+        { label: "暗がりの近道へ", if: { notFlag: "done_dark" }, to: "dark1" },
+        { label: "夜店の並びへ戻る", to: "hub1" }
+      ]
+    },
+    hitowake: {
+      chapter: "二夜 名札の森",
+      title: "火分け",
+      effects: { flag: "done_hiwake" },
+      text: "灯の径に、消えかけの提灯がひとつ、地に降りて震えていた。中で、老いた男の顔が薄れかけている。「……火を。すまないが、火を、少しだけ」\n分ければ、あなたの灯が減る。この市で、それがどういうことかは、もう知っている。",
+      choices: [
+        { label: "己の灯を分けてやる", effects: { hp: -1, gen: 2 },
+          to: [ { if: { hpLte: 0 }, to: "death_lantern" }, { to: "hitowake2" } ] },
+        { label: "目を伏せて通り過ぎる", to: "mori1" }
+      ]
+    },
+    hitowake2: {
+      chapter: "二夜 名札の森",
+      title: "験は宿る",
+      text: "火を分けると、提灯の中の顔がわずかに色を取り戻し、深く、深く頭を下げた。「……火を分ける者に、験は宿る。婆さまの代からそう言った。あんたの賽は、今夜きっと澄む」\n提灯はよろよろと梁の高さまで浮かび、灯の径の一員に戻っていった。",
+      choices: [{ label: "径を戻る", to: "mori1" }]
+    },
+    dark1: {
+      chapter: "二夜 名札の森",
+      title: "灯の絶えた薮",
+      effects: { flag: "done_dark" },
+      text: "近道の口に立った途端、うなじの毛が逆立った。薮の奥は、暗いのではない。黒いのだ。市の提灯がここだけ照らさないのには、理由があるとしか思えない。\n奥から、濡れた葉を踏むような音が、ゆっくりと、こちらへ近づいてくる。",
+      choices: [
+        { label: "引き返す", to: "mori1" },
+        { label: "構わず突っ切る", effects: { hp: -6 },
+          to: [ { if: { hpLte: 0 }, to: "death_dark" }, { to: "dark2" } ] }
+      ]
+    },
+    dark2: {
+      chapter: "二夜 名札の森",
+      title: "黒い息",
+      reaction: true,
+      text: "何かが、すれ違いざまにあなたの灯を大きく啜った。振り払い、転げるように薮を抜ける。心臓が耳の奥で鳴っている。\n——近道では、あった。二度と使うものか。",
+      choices: [{ label: "短冊の森へ出る", to: "mori2" }]
+    },
+    mori2: {
+      chapter: "二夜 名札の森",
+      title: "名札の森",
+      text: "笹の枝という枝に、短冊が下がっていた。何百、何千。どれにも名前がひとつずつ書かれ、夜風もないのに、さらさらと鳴っている。読める名も、掠れた名も、もう誰にも読めない古い名もあった。\n取られた名前の吊るし場だ。この中から、ヒナの名を捜す。",
+      choices: [
+        { label: "ヒナの名を、声に出して呼ぶ", if: { notFlag: "paid_voice" },
+          lockedHint: "声は今夜、木戸銭に預けてある。", to: "mori2b" },
+        { label: "短冊を一枚ずつ検めていく", effects: { hp: -1 },
+          to: [ { if: { hpLte: 0 }, to: "death_lantern" }, { to: "mori2b" } ] }
+      ]
+    },
+    mori2b: {
+      chapter: "二夜 名札の森",
+      title: "ヒナの短冊",
+      text: "見つけた。見慣れた、少し右上がりの拙い字——ヒナ。\n短冊は笹の小枝に、結び目もなくただ触れているだけに見える。なのに、指をかけた途端、びくとも動かなかった。そして森じゅうの笹の上で、りん、と鈴が鳴った。\n一斉に。",
+      choices: [{ label: "それでも短冊に手を伸ばす", to: "oni_chase" }]
+    },
+    oni_chase: {
+      chapter: "二夜 名札の森",
+      title: "見廻りの鬼",
+      text: "笹を薙ぎ倒して、それは来た。祭り半纏を羽織った、見上げるほどの鬼。手にした金棒には提灯がずらりと吊るされ、一歩ごとに、からからと鳴る。\n「札に、触ったな」\n声は存外、静かだった。静かなまま、地を蹴る音だけが、もう近い。",
+      choices: [
+        { label: "狐面をかぶり、澄まして立つ", if: { item: "kitsune" }, to: "oni_pass" },
+        { label: "笹の間を駆けて逃げる", to: "oni_g" }
+      ]
+    },
+    oni_pass: {
+      chapter: "二夜 名札の森",
+      title: "狐の顔",
+      text: "面の下で息を殺す。鬼は鼻先まで顔を寄せ、ふん、と鼻を鳴らした。「……なんだ、市の者か。紛らわしい。鈴の始末はつけておけ」\n金棒の提灯を揺らしながら、鬼は森の奥へ去っていった。面の内側に、じっとりと汗が溜まっている。",
+      choices: [{ label: "森の奥へ", to: "mori3" }]
+    },
+    oni_g: {
+      chapter: "二夜 名札の森",
+      title: "鬼ごっこ ― 目押し",
+      game: {
+        type: "timing", speed: 2.6, zone: 18, big: 6,
+        prompt: "笹の切れ目が流れていく。頃合いで横へ跳べ。",
+        win:  { effects: {}, to: "mori3" },
+        big:  { effects: { gen: 1 }, to: "mori3" },
+        lose: { effects: { hp: -3 },
+          to: [ { if: { hpLte: 0 }, to: "death_oni" }, { to: "oni_chase" } ] }
+      },
+      text: "まっすぐ逃げれば追いつかれる。笹の壁の切れ目へ、鬼の手が届く寸前に横へ跳ぶ——その頃合いだけが、命綱だ。背中で、金棒の提灯が鳴っている。"
+    },
+    mori3: {
+      chapter: "二夜 名札の森",
+      title: "森の奥の井戸",
+      text: "森を抜けた先は、笹に囲まれた小さな空き地だった。真ん中に、古い井戸がひとつ。\n覗くと、遥か底の水面に、白いものが沈んで光っている。——賽だ。骨のように白い、賽がひと粒。\n短冊は森から外れない。ならばヒナの「名」そのものは、奥の帳場、元締の手の中ということになる。",
+      choices: [
+        { label: "リンの鉢を、井戸の水面にそっと下ろす", if: { item: "fish" }, to: "well_fish" },
+        { label: "澄んだ心で、井戸に手を差し入れる", if: { gen: 5 },
+          lockedHint: "験がまだ足りない。市の底は、縁起の良い手しか受け付けない。", to: "well_hand" },
+        { label: "井戸を後にし、大賭場へ", to: "gate3" },
+        { label: "夜店の並びへ戻る", to: "hub1" }
+      ]
+    },
+    well_fish: {
+      chapter: "二夜 名札の森",
+      title: "リンの潜り",
+      text: "「まかせて」\n鉢を出たリンは、赤い尾を一閃させて井戸の底へ消え——やがて、白い賽を口に咥えて上がってきた。「これ、市の一番はじめの賽。元締の理(ことわり)の根っこ。……あたしはここまで。この井戸、外に繋がってるの」\n赤い影は一度だけ跳ねて、别れの鈴を鳴らし、水底の光の向こうへ消えていった。",
+      effects: { removeItem: "fish", item: "hatsusai", gen: 2 },
+      choices: [{ label: "賽を袂に、井戸を後にする", to: "mori3" }]
+    },
+    well_hand: {
+      chapter: "二夜 名札の森",
+      title: "澄んだ水",
+      text: "縁起を担ぎ抜いた手は、水を騒がせない。差し入れた腕が、肘まで、肩まで——届くはずのない底へ、するりと届いた。\n指先に、脈打つものが触れる。引き上げた掌の上で、骨のように白い賽がひと粒、静かに息をしていた。宵市の、最初の賽だ。",
+      effects: { item: "hatsusai" },
+      choices: [{ label: "賽を袂に、井戸を後にする", to: "mori3" }]
+    },
+    // ---------- 大賭場 ----------
+    gate3: {
+      chapter: "三夜 大賭場",
+      title: "大賭場の木戸",
+      text: "市の最奥、ひときわ大きな提灯を掲げた楼が大賭場だった。楼の提灯は他と違って、白い。中の顔が、まだ薄れていないからだ。\n木戸の前には帳場の男がふたり、出入りの客をひとりずつ検めている。\n「札は」と、抑揚のない声が言った。",
+      choices: [
+        { label: "木札を差し出す", if: { item: "kifuda" }, to: "zashiki" },
+        { label: "狐面のまま、顎で奥を指す", if: { item: "kitsune" }, to: "zashiki" },
+        { label: "「札はない。灯で払う」——灯を三つ差し出す", effects: { hp: -3 },
+          to: [ { if: { hpLte: 0 }, to: "death_lantern" }, { to: "zashiki" } ] }
+      ]
+    },
+    zashiki: {
+      chapter: "三夜 大賭場",
+      title: "帳場の座敷",
+      text: "通された座敷の隅に、ヒナがいた。\n浴衣の膝を揃え、つまらなそうに、吊るされた提灯を眺めている。駆け寄ると、妹はゆっくりとこちらを向き——不思議そうに首をかしげた。\n「……どちらさま?」\n名を失うとは、こういうことだ。名を知る者の中から、自分が消える。",
+      choices: [
+        { label: "夏の縁側の、水飴の思い出を語って聞かせる", if: { notFlag: "paid_memory" },
+          lockedHint: "その思い出は——木戸銭に、払ってしまった。",
+          effects: { gen: 1, flag: "hinacalm" }, to: "motojime" },
+        { label: "何も言えないまま、奥の帳場へ向かう", to: "motojime" }
+      ]
+    },
+    motojime: {
+      chapter: "三夜 大賭場",
+      title: "元締",
+      text: "帳場の奥、山と積まれた短冊の向こうに、白い翁面の男が座っていた。\n「妹御の名なら、ここにある」元締は短冊を一枚、面の高さに掲げた。「宵市の決まりはひとつ。取られたものは、賭けでしか還らない。——ただし、いきなり本賭けとはいかない。腕を見せてもらう。三番勝負。勝ち抜けば、望みの賭けをひとつ、受けてやろう」",
+      choices: [{ label: "「受けて立つ」", to: "r1_g" }]
+    },
+    r1_g: {
+      chapter: "三夜 大賭場",
+      title: "一の勝負 ― 丁半",
+      game: {
+        type: "dice", stake: 2,
+        prompt: "帳場の壺が伏せられた。丁か、半か。",
+        win:  { effects: {}, to: "r2" },
+        lose: { effects: { hp: -2 },
+          to: [ { if: { hpLte: 0 }, to: "death_lantern" }, { to: "r1r" } ] }
+      },
+      text: "一の勝負は丁半。壺を振るのは帳場の若い衆だが、賽は元締の白い賽だ。莚の上で乾いた音が二度鳴り、座敷の空気が、すっと薄くなった。"
+    },
+    r1r: {
+      chapter: "三夜 大賭場",
+      title: "一の勝負 ― 仕切り直し",
+      reaction: true,
+      text: "「灯が減ったねえ」と元締が愉しげに言った。「一の勝負も抜けられないようじゃ、話にならないよ。——さあ、張り直しな」\n卓の上の短冊が、笑うように揺れた。",
+      choices: [{ label: "もう一度、莚に着く", to: "r1_g" }]
+    },
+    r2: {
+      chapter: "三夜 大賭場",
+      title: "二の勝負 ― 的当て",
+      text: "「二の勝負」と元締が手を打つと、襖が音もなく開き、座敷の奥に的場がしつらえられた。吊るされた的は、夜店の射的よりふた回り小さく、そして速い。\n「うちの的は、生きてるんでね」的の面に、ちらりと目玉が覗いた気がした。",
+      choices: [{ label: "灯をふたつ賭け、弓を取る", to: "r2_g" }]
+    },
+    r2_g: {
+      chapter: "三夜 大賭場",
+      title: "二の勝負 ― 目押し",
+      game: {
+        type: "timing", speed: 3.2, zone: 12, big: 4,
+        prompt: "生きた的が座敷を横切る。頃合いで射抜け。",
+        win:  { effects: {}, to: "r3" },
+        big:  { effects: { gen: 1 }, to: "r3" },
+        lose: { effects: { hp: -2 },
+          to: [ { if: { hpLte: 0 }, to: "death_lantern" }, { to: "r2r" } ] }
+      },
+      text: "的は逃げるように速い。だが往復の律だけは、律儀に守っている。呼吸を的の律に合わせ、弦を、ぎり、と引き絞る。外せば、灯がまたふたつ減る。"
+    },
+    r2r: {
+      chapter: "三夜 大賭場",
+      title: "二の勝負 ― 仕切り直し",
+      reaction: true,
+      text: "矢は的の縁を掠め、畳に突き立った。的が、笑ったようにひと揺れする。「惜しいねえ」と元締が言う。その声だけが、少しも惜しそうではなかった。",
+      choices: [{ label: "次の矢を番える", to: "r2_g" }]
+    },
+    r3: {
+      chapter: "三夜 大賭場",
+      title: "三の勝負 ― 白い賽",
+      text: "「仕上げは、あたしが自分で振ろう」\n元締が袂から取り出した賽は、帳場の賽よりもさらに白く、骨を思わせる艶があった。\n賭場の作法では、客は勝負の前に賽を検めることを許されている。——ただしそれは、細工を見抜く目が、あるならばの話だ。",
+      choices: [
+        { label: "「その賽、検めさせてもらう」", if: { gen: 5 },
+          lockedHint: "験が足りない。並の目では、細工は見抜けない。", to: "r3f_g" },
+        { label: "そのまま勝負を受ける", to: "r3x_g" }
+      ]
+    },
+    r3f_g: {
+      chapter: "三夜 大賭場",
+      title: "三の勝負 ― 検めた賽",
+      game: {
+        type: "dice", stake: 2,
+        prompt: "細工は暴いた。あとは、まっさらの丁半だ。",
+        win:  { effects: {}, to: "final_bet" },
+        lose: { effects: { hp: -2 },
+          to: [ { if: { hpLte: 0 }, to: "death_lantern" }, { to: "r3r" } ] }
+      },
+      text: "掌の上で転がすと、賽の重心がわずかに泣いた。「——鉛が入っている」\n元締は面の奥で笑い、素直に賽を取り替えた。「目のいい客は、嫌いじゃないよ」"
+    },
+    r3x_g: {
+      chapter: "三夜 大賭場",
+      title: "三の勝負 ― 白い賽のまま",
+      game: {
+        type: "dice", stake: 4,
+        prompt: "元締の白い賽が壺に落ちる。妙に、重い音がした。",
+        win:  { effects: {}, to: "final_bet" },
+        lose: { effects: { hp: -4 },
+          to: [ { if: { hpLte: 0 }, to: "death_lantern" }, { to: "r3r" } ] }
+      },
+      text: "白い賽が壺に落ちる音は、他の賽より半拍だけ重い。気のせいだと思いたい重さだった。負ければきっと、灯の減りも重い。「さあ、張った」"
+    },
+    r3r: {
+      chapter: "三夜 大賭場",
+      title: "三の勝負 ― 仕切り直し",
+      reaction: true,
+      text: "「三の勝負は、何度でも受けるよ」元締は白い賽をひと粒、面の高さに摘まみ上げてみせた。「——灯の続く限りは、だがね」\n翁面の口元が、笑った気がした。",
+      choices: [{ label: "もう一度、賽を見る", to: "r3" }]
+    },
+    // ---------- 最後の賭け ----------
+    final_bet: {
+      chapter: "三夜 大賭場",
+      title: "望みの賭け",
+      text: "「三番、見事に抜けた」元締は短冊——ヒナの名を、帳場の卓の真ん中に置いた。\n「約束通り、望みの賭けをひとつ受けよう。何を賭ける? 言っておくが、釣り合いは取ってもらうよ。名には、名を。それより大きなものには——それより大きなものを」\n翁面の目の奥が、初めて、こちらを覗き込んだ。",
+      choices: [
+        { label: "「妹の名に、俺の名を賭ける」", to: "final_g" },
+        { label: "最初の賽を卓に置く——「この賽で、市そのものを賭けろ」",
+          if: { all: [ { item: "hatsusai" }, { gen: 6 } ] },
+          lockedHint: "賽はある。だが市の理と渡り合うには、験が足りない。", to: "ichi_break" },
+        { label: "「賭けはいい。俺の名と、その短冊を交換だ」", to: "swap_node" },
+        { label: "「……\"朝\"を賭ける。この市の夜と、世界の朝をだ」", to: "asa_bet" },
+        { label: "短冊から目を逸らし、席を立つ", to: "ending_alone" }
+      ]
+    },
+    final_g: {
+      chapter: "三夜 大賭場",
+      title: "名の賭け ― 丁半",
+      game: {
+        type: "dice", stake: 3,
+        prompt: "卓の上に、二枚の名。壺が伏せられる。丁か、半か。",
+        win:  { effects: {}, to: "win_name" },
+        lose: { effects: { hp: -3 },
+          to: [ { if: { hpLte: 0 }, to: "death_lantern" }, { to: "final_bet" } ] }
+      },
+      text: "あなたの名が、書いた覚えのない短冊になって、卓の上のヒナの名の隣に並んだ。壺の中で賽がふた粒、今夜いちばん長く、回った。"
+    },
+    win_name: {
+      chapter: "三夜 大賭場",
+      title: "還った名",
+      text: "壺が開いた。——目は、あなたの側についた。\n元締はしばし黙り、それから存外あっさりと、ヒナの短冊を卓のこちら側へ滑らせた。短冊は指に触れた途端ほどけて、光の粉になって座敷の隅へ流れていく。「……おにいちゃん?」ヒナの声がした。\n「大したもんだ」と元締が言った。「——時に、お客さん。最後にもう一勝負、どうだい。倍賭けだ。あんたなら勝てる」",
+      choices: [
+        { label: "ヒナの手を引き、莚を立つ", to: "ending_futari" },
+        { label: "「……もう一勝負だけ」", to: "spiral1" }
+      ]
+    },
+    spiral1: {
+      chapter: "三夜 大賭場",
+      title: "倍賭け",
+      text: "勝った。また勝った。卓の上に、見たこともない上がりが積まれていく。灯が十、二十。他人の名が三枚。壺が伏せられるたび、腹の底が甘く痺れる。\n座敷の隅で、ヒナが浴衣の裾を握って立っている。「おにいちゃん、帰ろう?」\n元締の声は蜜のようだ。「次は、もっと大きく張れるよ」",
+      choices: [
+        { label: "はっとして、ヒナの手を取る", to: "ending_futari" },
+        { label: "「次で最後にする」", to: "spiral2" }
+      ]
+    },
+    spiral2: {
+      chapter: "三夜 大賭場",
+      title: "あと一度",
+      text: "「次で最後」は、三度目だった。四度目だったかもしれない。壺の音のほかは、何も耳に入らなくなっていた。\nヒナの「帰ろう」が、だんだん遠くなる。遠くなっていることに、気づいてはいる。気づいて、いるのに。\n「さあ、張った」と元締が言う。",
+      choices: [
+        { label: "「あと一度だけ」", to: "ending_addict" },
+        { label: "「これが本当に最後だ」", to: "ending_addict" }
+      ]
+    },
+    swap_node: {
+      chapter: "三夜 大賭場",
+      title: "取り替え",
+      text: "「賭けずに、交換ときたか」元締は翁面を傾けた。「いいだろう。名には、名を。等価だ——受けよう」\nあなたが自分の名を口にした途端、それは口の中で短冊の紙の味に変わり、するりと卓へ滑り出た。入れ替わりに、ヒナの短冊がほどけて光になる。\n「おにいちゃん!」駆け寄ってくる妹の声が、なぜだか、少しだけ他人行儀に聞こえた。",
+      choices: [{ label: "ヒナを木戸の外へ", to: "ending_swap" }]
+    },
+    asa_bet: {
+      chapter: "三夜 大賭場",
+      title: "朝の賭け",
+      text: "座敷が、静まり返った。\n「……\"朝\"を」元締は翁面を外した。その下には、何もなかった。夜だけが、面の形にわだかまっていた。\n「受けよう。あんたが勝てば、市は畳んで、名も灯も客もぜんぶ返す。あたしが勝てば——朝は、うちの蔵に入れる」\n夜そのものが、壺を振った。賽の音はしなかった。夜に、目はないからだ。",
+      choices: [{ label: "壺が、開く", to: "ending_dawnless" }]
+    },
+    ichi_break: {
+      chapter: "三夜 大賭場",
+      title: "最初の賽",
+      text: "白い賽を卓に置いた瞬間、大賭場のすべての提灯が、いっせいにこちらを向いた。\n「——それを、どこで」元締の声から、初めて余裕が消えた。\n宵市の理はこの一粒から転がり出た。ならば市の胴は、この賽の目に逆らえない。あなたは賽を振る。賽は掌の上でひと呼吸だけ脈打ち、そして、市が立って以来一度も出たことのない目——「朝」の目を、静かに上へ向けた。",
+      choices: [{ label: "「市の負けだ」", to: "ending_dawn" }]
+    },
+    // ---------- 結末 ----------
+    ending_dawn: {
+      chapter: "終 明け",
+      title: "朝開き",
+      ending: { key: "dawn", name: "終幕・朝開き", tone: "true" },
+      text: "市が、ほどけていった。\n提灯がひとつずつ人の形に戻り、短冊の森が名前を返しにざわめき、夜店の列が畳まれていく。元締は最後まで卓の前に座り、「……いい夜だったよ」とだけ言って、翁面ごと朝の色に薄れていった。\n九本目の鳥居を出ると、蝉が鳴いていた。ヒナの手は温かく、東の空は白みはじめている。\n袂の中で、白い賽がことりと鳴った。振ってみると、目はもう、どこにもなかった。"
+    },
+    ending_futari: {
+      chapter: "終 明け",
+      title: "二人の朝",
+      ending: { key: "futari", name: "終幕・二人の朝", tone: "warm" },
+      text: "木戸を出て、名札の森を抜け、夜店の並びを駆けた。呼び込みの声が、心なしか名残惜しそうに背中を撫でる。\n九本目の鳥居をくぐった途端、蝉の声が戻った。鳥居は——数えると、七本に戻っていた。\n「おにいちゃん、綿飴」とヒナが言う。何事もなかったような顔で。それでいい。それがいい。\n東の空が白む。祭りの朝の、片付けの音がする。繋いだ手は、もう軽くならなかった。"
+    },
+    ending_alone: {
+      chapter: "終 明け",
+      title: "白む提灯",
+      ending: { key: "alone", name: "終幕・白む提灯", tone: "still" },
+      text: "あなたは席を立った。元締は引き止めなかった。「気が変わったら、おいで。市は、いつでも立ってるよ」\n九本目の鳥居を出ると朝で、鳥居は七本で、あなたの隣には誰もいなかった。\n村の誰も、ヒナを覚えていない。仏間の写真は一人分少なく、母の箸置きはひとつ少ない。あなただけが覚えている。\n毎年、祭りの晩には鳥居を数えに行く。七本の年が続いている。九本目が立つ晩を、あなたはまだ、待っている。"
+    },
+    ending_swap: {
+      chapter: "終 明け",
+      title: "取り替え子",
+      ending: { key: "swap", name: "終幕・取り替え子", tone: "dark" },
+      text: "ヒナは朝の側へ帰り、あなたは夜の側に残った。名のない者に、鳥居はくぐれない。\n今は面屋の張り見世で、型抜きの番をしている。手先は、もともと器用なほうだった。\n年にいちど、祭りの晩に、よく似た面差しの娘が市に迷い込んでくる。誰かを捜すような目で夜店を覗き、あなたの前で足を止め、不思議そうに首をかしげて言うのだ。\n「……どちらさま?」\nあなたは面の下で笑って、型抜きを一枚、ただで渡す。それが、名を捨てた男にできる精一杯だった。"
+    },
+    ending_addict: {
+      chapter: "終 明け",
+      title: "千夜の客",
+      ending: { key: "addict", name: "終幕・千夜の客", tone: "dark" },
+      text: "「最後の一勝負」を、今夜も張っている。\n上がりは山と積まれた。他人の名が何十枚、灯が何百。とうに、ヒナの名を千回買い戻せる高だ。だが卓を立つ頃合いが、どうしても、来ない。次の壺の音だけが、世界でいちばん確かなものになってしまった。\n座敷の隅の席は、いつからか空いている。妹がいつ帰ったのか、帰れたのか、それとも——思い出そうとすると、壺が伏せられる。\n「さあ、張った」\nあなたは、張る。"
+    },
+    ending_dawnless: {
+      chapter: "終 ——",
+      title: "明けない夜",
+      ending: { key: "dawnless", name: "終幕・明けない夜", tone: "dark" },
+      text: "壺が開いた。夜に、負けた。\nその晩、世界のどの窓からも、朝は来なかった。\n宵市は鳥居を呑み、参道を呑み、村を、街を、灯りのつく場所を端から呑んで広がった。人々は戸惑い、やがて慣れ、いまは皆、浴衣で夜店を歩いている。誰も家に帰らない。帰るという言葉が、先に消えた。\nヒナは金魚すくいの店で働いている。名はもう、要らないらしい。あなたが椀を差し出すと、営業の笑顔で「いらっしゃい」と言う。毎晩、言う。\nあなたは今夜も市を歩く。財布の代わりに、空の胸を提げて。\n以来——世界のどこにも、朝は来ていない。"
+    },
+    // ---------- 落命(結末には数えない) ----------
+    death_lantern: {
+      chapter: "落命",
+      title: "点灯",
+      death: true,
+      text: "灯が、尽きた。\n体がすうっと軽くなり、輪郭が紙の白に、骨が竹ひごの細さに変わっていく。市の者が寄ってきて、慣れた手つきであなたを軒先に吊るした。\n視界は存外、悪くない。夜店の並びがよく見える。今夜も市は、賑わっている。あなたの明るさの、ぶんだけ。"
+    },
+    death_oni: {
+      chapter: "落命",
+      title: "金棒の提灯",
+      death: true,
+      text: "笹の切れ目を、読み違えた。\n伸びた鬼の手があなたの襟をつかみ、宙へ吊るし上げる。「札に触った咎、灯で払え」\n金棒の先には提灯がずらりと並んでいて、その端にひとつ、空の吊り輪が揺れていた。あなたの寸法に、ちょうどよく。"
+    },
+    death_dark: {
+      chapter: "落命",
+      title: "灯の絶えた薮",
+      death: true,
+      text: "黒い息が、あなたの灯を根こそぎ啜った。悲鳴は、出なかった。声より先に、声を出す火のほうが消えたからだ。\n提灯の照らさない場所に何がいるのか、市の者は誰も語らない。語れる者が、戻らないからだ。\n薮の奥で、濡れた葉を踏む音がひとつ増えた。今夜からは、あなたの足音だ。"
+    }
+  },
+  endingOrder: ["alone", "swap", "addict", "futari", "dawnless", "dawn"]
+};
+if (typeof module !== "undefined") module.exports = STORY;
+
+</script>
+<script>
+(function(){
+  "use strict";
+  const $ = id => document.getElementById(id);
+  const main = $("main");
+  const MAXHP = STORY.meta.maxhp;
+  const MAXGEN = STORY.meta.maxgen;
+  const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const DIE = ["","\u2680","\u2681","\u2682","\u2683","\u2684","\u2685"];
+
+  // ---------- 状態 ----------
+  let S = null;               // {node,hp,gen,items:Map,flags:Set,visited:Set,log:[]}
+  let achieved = new Set();   // 結末記録(落命は含めない)
+  let undoStack = [];
+  let gameRT = null;          // 進行中の遊戯のランタイム(描画毎に破棄)
+
+  function freshState(){
+    return { node: STORY.startNode, hp: MAXHP, gen: 0,
+      items:new Map(), flags:new Set(), visited:new Set(), log:[] };
+  }
+  function snapshot(){
+    return { node:S.node, hp:S.hp, gen:S.gen, items:[...S.items],
+      flags:[...S.flags], visited:[...S.visited], logLen:S.log.length };
+  }
+  function restore(sn){
+    S.node=sn.node; S.hp=sn.hp; S.gen=sn.gen; S.items=new Map(sn.items);
+    S.flags=new Set(sn.flags); S.visited=new Set(sn.visited);
+    S.log.length = sn.logLen;
+  }
+  const itemCount = id => S.items.get(id) || 0;
+
+  // ---------- 条件・効果(検証スクリプトと同一の意味論) ----------
+  function evalCond(c){
+    if(!c) return true;
+    if(c.all) return c.all.every(evalCond);
+    if(c.any) return c.any.some(evalCond);
+    if("gen" in c && !(S.gen >= c.gen)) return false;
+    if("hpLte" in c && !(S.hp <= c.hpLte)) return false;
+    if("item" in c && !(itemCount(c.item) > 0)) return false;
+    if("flag" in c && !S.flags.has(c.flag)) return false;
+    if("notFlag" in c && S.flags.has(c.notFlag)) return false;
+    return true;
+  }
+  function applyEffects(e){
+    if(!e) return;
+    if(e.hp){
+      const before = S.hp;
+      S.hp = Math.min(MAXHP, S.hp + e.hp);
+      if(e.hp < 0) toast("灯 "+e.hp, "dmg");
+      else if(S.hp > before) toast("灯 +"+(S.hp-before), "heal");
+    }
+    if(e.gen){
+      const before = S.gen;
+      S.gen = Math.max(0, Math.min(MAXGEN, S.gen + e.gen));
+      if(S.gen > before) toast("験 +"+(S.gen-before));
+      else if(S.gen < before) toast("験 "+(S.gen-before));
+    }
+    if(e.item){
+      const n = e.n || 1;
+      S.items.set(e.item, itemCount(e.item) + n);
+      toast("手に入れた:"+STORY.items[e.item].name + (n>1 ? " ×"+n : ""));
+    }
+    if(e.removeItem){
+      const c = itemCount(e.removeItem);
+      if(c > 1) S.items.set(e.removeItem, c-1); else S.items.delete(e.removeItem);
+      toast("失った:"+STORY.items[e.removeItem].name);
+    }
+    if(e.flag) (Array.isArray(e.flag)?e.flag:[e.flag]).forEach(f=>S.flags.add(f));
+    if(e.unflag) S.flags.delete(e.unflag);
+  }
+  function resolveTo(to){
+    if(typeof to === "string") return to;
+    for(const b of to){ if(evalCond(b.if)) return b.to; }
+    return to[to.length-1].to;
+  }
+
+  // ---------- 進行 ----------
+  function choose(choice){
+    undoStack.push(snapshot());
+    if(undoStack.length>150) undoStack.shift();
+    const node = STORY.nodes[S.node];
+    S.log.push({ t: node.title, c: choice.label });
+    applyEffects(choice.effects);
+    const dest = resolveTo(choice.to);
+    if(S.hp < 0) S.hp = 0;
+    enterNode(dest);
+  }
+  function enterNode(id){
+    S.node = id;
+    const node = STORY.nodes[id];
+    if(!S.visited.has(id)){ S.visited.add(id); applyEffects(node.effects); }
+    if(node.ending) achieved.add(node.ending.key);
+    render();
+    window.scrollTo({top:0, behavior:"auto"});
+  }
+  function undo(){
+    if(!undoStack.length || !S) return;
+    restore(undoStack.pop());
+    render();
+  }
+  function startGame(){
+    S = freshState();
+    undoStack = [];
+    enterNode(STORY.startNode);
+  }
+  function drink(){
+    if(!S || itemCount("ramune")===0 || S.hp>=MAXHP) return;
+    undoStack.push(snapshot());
+    applyEffects({ removeItem:"ramune" });
+    applyEffects({ hp:+3 });
+    S.log.push({ t: STORY.nodes[S.node].title, c: "(ラムネを飲んだ)" });
+    render();
+  }
+
+  // ---------- 遊戯の決着 ----------
+  function armGame(){          // 遊戯に手を付けた瞬間の状態を積む(消耗品も戻せる)
+    if(gameRT && !gameRT.armed){
+      undoStack.push(snapshot());
+      if(undoStack.length>150) undoStack.shift();
+      gameRT.armed = true;
+    }
+  }
+  function settleGame(outcomeKey, detail){
+    const node = STORY.nodes[S.node];
+    const oc = node.game[outcomeKey];
+    S.log.push({ t: node.title, c: "(遊戯:"+detail+")" });
+    applyEffects(oc.effects);
+    const dest = resolveTo(oc.to);
+    if(S.hp < 0) S.hp = 0;
+    setTimeout(()=>enterNode(dest), REDUCED ? 300 : 900);
+  }
+
+  // ---------- 描画 ----------
+  function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+  function renderStatus(node){
+    $("statusWrap").style.display = "";
+    const hp = Math.max(0, S.hp);
+    $("lamps").innerHTML = Array.from({length:MAXHP},(_,i)=>
+      '<span class="lamp'+(i<hp?" lit":"")+'"></span>').join("");
+    $("hpNum").textContent = hp+" / "+MAXHP;
+    $("genfill").style.width = (S.gen/MAXGEN*100)+"%";
+    $("genNum").textContent = S.gen+" / "+MAXGEN;
+    $("stLoc").textContent = node.chapter;
+    const chips = [...S.items].map(([id,n])=>
+      '<span class="chip" title="'+esc(STORY.items[id].desc)+'">'+esc(STORY.items[id].name)+
+      (n>1?'<span class="cnt">×'+n+'</span>':'')+'</span>').join(" ");
+    $("invChips").innerHTML = chips || '<span class="empty">(何も持っていない)</span>';
+    $("btnDrink").style.display =
+      (itemCount("ramune")>0 && S.hp<MAXHP && !node.ending && !node.death) ? "" : "none";
+  }
+
+  function render(){
+    if(gameRT){ if(gameRT.raf) cancelAnimationFrame(gameRT.raf); gameRT = null; }
+    if(!S){ renderTitle(); return; }
+    const node = STORY.nodes[S.node];
+    renderStatus(node);
+    $("btnUndo").disabled = undoStack.length===0;
+
+    const paras = node.text.split("\n").map((p,i)=>
+      '<p class="para" style="--i:'+i+'">'+esc(p)+"</p>").join("");
+    let html = '<div class="scene"><div class="scene-head">'+
+      '<span class="chap">'+esc(node.chapter)+'</span>'+
+      '<span class="ttl">'+esc(node.title)+'</span></div>'+
+      '<div class="scene-text">'+paras+'</div></div>';
+
+    if(node.death){
+      html += '<div class="ending-card tone-death">'+
+        '<div class="ending-eyebrow">落命</div>'+
+        '<div class="ending-name">'+esc(node.title)+'</div>'+
+        '<div class="ending-count">夜はまだ長い。選び直せる。</div>'+
+        '<div class="btnrow">'+
+        '<button class="btn revive" id="dUndo">直前に戻る</button>'+
+        '<button class="btn secondary" id="dAgain">最初から</button>'+
+        '<button class="btn secondary" id="dTitle">表題へ</button>'+
+        '</div></div>';
+      main.innerHTML = html;
+      $("dUndo").onclick = undo;
+      $("dAgain").onclick = startGame;
+      $("dTitle").onclick = ()=>{ S=null; undoStack=[]; render(); };
+      return;
+    }
+    if(node.ending){
+      const total = STORY.endingOrder.length;
+      html += '<div class="ending-card tone-'+node.ending.tone+'">'+
+        '<div class="ending-eyebrow">ここに一つの結末</div>'+
+        '<div class="ending-name">'+esc(node.ending.name)+'</div>'+
+        '<div class="ending-count">見届けた結末 '+achieved.size+' / '+total+'</div>'+
+        '<div class="btnrow">'+
+        '<button class="btn" id="edAgain">最初から読み直す</button>'+
+        '<button class="btn secondary" id="edAchv">結末の一覧</button>'+
+        '<button class="btn secondary" id="edTitle">表題へ戻る</button>'+
+        '</div></div>';
+      main.innerHTML = html;
+      $("edAgain").onclick = startGame;
+      $("edAchv").onclick = ()=>openModal("achv");
+      $("edTitle").onclick = ()=>{ S=null; undoStack=[]; render(); };
+      return;
+    }
+    if(node.game){
+      html += '<div class="game-box" id="gameBox"></div>';
+      main.innerHTML = html;
+      if(node.game.type==="dice") renderDice(node);
+      else renderTiming(node);
+      return;
+    }
+    html += '<div class="choices" id="choices"></div>';
+    main.innerHTML = html;
+    const box = $("choices");
+    let num = 0;
+    (node.choices||[]).forEach(ch=>{
+      const okC = evalCond(ch.if);
+      if(!okC && !ch.lockedHint) return;
+      const btn = document.createElement("button");
+      btn.className = "choice"+(okC?"":" locked");
+      if(okC){
+        num++;
+        btn.innerHTML = '<span class="num">'+num+'</span><span>'+esc(ch.label)+'</span>';
+        btn.dataset.key = num;
+        btn.onclick = ()=>choose(ch);
+      } else {
+        btn.innerHTML = '<span class="num">鎖</span><span>'+esc(ch.label)+
+          '<span class="locked-hint">'+esc(ch.lockedHint)+'</span></span>';
+        btn.setAttribute("aria-disabled","true");
+      }
+      box.appendChild(btn);
+    });
+  }
+
+  // ---------- 丁半 ----------
+  function renderDice(node){
+    const g = node.game;
+    const box = $("gameBox");
+    gameRT = { kind:"dice", armed:false, raf:0 };
+    box.innerHTML =
+      '<div class="game-prompt">'+esc(g.prompt)+'</div>'+
+      '<div class="dice-stage" id="diceStage"><span class="die">?</span><span class="die">?</span></div>'+
+      '<div class="game-result" id="gRes"></div>'+
+      '<div class="gbtns" id="gBtns"></div>'+
+      '<div class="game-note" id="gNote"></div>';
+    showCallButtons();
+
+    function showCallButtons(){
+      $("gRes").textContent = ""; $("gRes").className = "game-result";
+      const b = $("gBtns"); b.innerHTML = "";
+      mkBtn(b, "丁に張る", ()=>play("cho"));
+      mkBtn(b, "半に張る", ()=>play("han"));
+      if(itemCount("cheat")>0){
+        mkBtn(b, "いかさま賽を仕込む(残"+itemCount("cheat")+")", ()=>{
+          armGame();
+          applyEffects({ removeItem:"cheat" });
+          renderStatus(node);
+          $("gNote").textContent = "袖の下で賽が入れ替わった。この勝負、目はもう決まっている。";
+          const b2 = $("gBtns"); b2.innerHTML = "";
+          mkBtn(b2, "丁に張る", ()=>play("cho", true));
+          mkBtn(b2, "半に張る", ()=>play("han", true));
+        }, "sub");
+      }
+    }
+    function play(call, forced){
+      armGame();
+      $("gBtns").innerHTML = "";
+      roll(call, !!forced, false);
+    }
+    function roll(call, forced, wasRerolled){
+      const stage = $("diceStage");
+      let t = 0;
+      const spinMs = REDUCED ? 260 : 950;
+      const iv = setInterval(()=>{
+        stage.innerHTML = '<span class="die">'+DIE[1+Math.floor(Math.random()*6)]+'</span>'+
+                          '<span class="die">'+DIE[1+Math.floor(Math.random()*6)]+'</span>';
+        t += 60;
+        if(t >= spinMs){
+          clearInterval(iv);
+          let d1, d2;
+          if(forced){
+            d1 = 1+Math.floor(Math.random()*6);
+            const needEven = (call==="cho");
+            d2 = 1+Math.floor(Math.random()*6);
+            if(((d1+d2)%2===0) !== needEven) d2 = d2===6 ? 5 : d2+1;
+          } else {
+            d1 = 1+Math.floor(Math.random()*6);
+            d2 = 1+Math.floor(Math.random()*6);
+          }
+          stage.innerHTML = '<span class="die">'+DIE[d1]+'</span><span class="die">'+DIE[d2]+'</span>';
+          const isCho = (d1+d2)%2===0;
+          const win = forced || (isCho === (call==="cho"));
+          const callName = call==="cho"?"丁":"半";
+          const faceName = isCho?"丁":"半";
+          const res = $("gRes");
+          if(win){
+            res.textContent = faceName+" —— 勝ち";
+            res.className = "game-result win";
+            settleGame("win", "丁半:"+callName+"に張り勝ち");
+            return;
+          }
+          // 負け: お守り → 験振り直し → 敗着
+          if(itemCount("omamori")>0 && !wasRerolled){
+            applyEffects({ removeItem:"omamori" });
+            renderStatus(node);
+            $("gNote").textContent = "袂でお守りが千切れた——伏せた壺の中で、賽がもう一度、転がり直る。";
+            setTimeout(()=>roll(call, false, true), REDUCED ? 250 : 750);
+            return;
+          }
+          res.textContent = faceName+" —— 負け";
+          res.className = "game-result lose";
+          const b = $("gBtns"); b.innerHTML = "";
+          if(S.gen >= 3){
+            mkBtn(b, "験を注いで振り直す(験-3)", ()=>{
+              applyEffects({ gen:-3 });
+              renderStatus(node);
+              $("gNote").textContent = "担いだ験を、壺に注ぐ。空気が澄み、賽が寝返りを打つ。";
+              b.innerHTML = "";
+              setTimeout(()=>roll(call, false, true), REDUCED ? 250 : 700);
+            });
+          }
+          mkBtn(b, "負けを受け入れる", ()=>{
+            b.innerHTML = "";
+            settleGame("lose", "丁半:"+callName+"に張り負け");
+          }, S.gen>=3 ? "sub" : "");
+        }
+      }, 60);
+    }
+  }
+
+  // ---------- 目押し ----------
+  function renderTiming(node){
+    const g = node.game;
+    const box = $("gameBox");
+    const effZone = Math.min(g.zone*1.8, g.zone*(1+S.gen*0.08));
+    const hasBig = !!g.big;
+    gameRT = { kind:"timing", armed:false, raf:0, running:false, pos:0 };
+    box.innerHTML =
+      '<div class="game-prompt">'+esc(g.prompt)+'</div>'+
+      '<div class="tbar-wrap"><div class="tbar" id="tbar">'+
+        '<div class="tzone" style="left:'+(50-effZone/2)+'%;width:'+effZone+'%"></div>'+
+        (hasBig?'<div class="tbig" style="left:'+(50-g.big/2)+'%;width:'+g.big+'%"></div>':'')+
+        '<div class="tmarker" id="tmarker"></div>'+
+      '</div>'+
+      '<div class="tlegend"><span class="l1">当たり'+(S.gen>0?"(験で拡大中)":"")+'</span>'+
+      (hasBig?'<span class="l2">大当たり</span>':'')+'</div></div>'+
+      '<div class="game-result" id="gRes"></div>'+
+      '<div class="gbtns" id="gBtns"></div>'+
+      '<div class="game-note" id="gNote">頃合いで「止める」。Spaceキーでも止められる。</div>';
+    const btns = $("gBtns");
+    mkBtn(btns, "始める", start);
+
+    function start(){
+      armGame();
+      gameRT.running = true;
+      btns.innerHTML = "";
+      mkBtn(btns, "止める", stop);
+      const period = (2400 / g.speed) * (REDUCED ? 1.8 : 1);
+      const t0 = performance.now();
+      const marker = $("tmarker");
+      (function loop(now){
+        if(!gameRT || !gameRT.running) return;
+        const ph = ((now - t0) % period) / period;
+        const tri = ph < 0.5 ? ph*2 : 2 - ph*2;
+        gameRT.pos = tri*100;
+        marker.style.left = gameRT.pos+"%";
+        gameRT.raf = requestAnimationFrame(loop);
+      })(t0);
+      $("tbar").onclick = stop;
+    }
+    function stop(){
+      if(!gameRT || !gameRT.running) return;
+      gameRT.running = false;
+      cancelAnimationFrame(gameRT.raf);
+      btns.innerHTML = "";
+      const d = Math.abs(gameRT.pos - 50);
+      const res = $("gRes");
+      if(hasBig && d <= g.big/2){
+        res.textContent = "大当たり";
+        res.className = "game-result win";
+        settleGame("big", "目押し:大当たり");
+      } else if(d <= effZone/2){
+        res.textContent = "当たり";
+        res.className = "game-result win";
+        settleGame("win", "目押し:当たり");
+      } else {
+        res.textContent = "外れ";
+        res.className = "game-result lose";
+        settleGame("lose", "目押し:外れ");
+      }
+    }
+    gameRT.stopFn = stop;
+    gameRT.startFn = start;
+  }
+
+  function mkBtn(parent, label, fn, cls){
+    const b = document.createElement("button");
+    b.className = "gbtn"+(cls?" "+cls:"");
+    b.textContent = label;
+    b.onclick = fn;
+    parent.appendChild(b);
+    return b;
+  }
+
+  function renderTitle(){
+    $("statusWrap").style.display = "none";
+    $("btnUndo").disabled = true;
+    const m = STORY.meta;
+    main.innerHTML =
+      '<div class="title-screen">'+
+      '<div class="garland" aria-hidden="true">'+"<i></i>".repeat(9)+'</div>'+
+      '<div class="title-main">'+esc(m.title)+'</div>'+
+      '<div class="title-sub">'+esc(m.subtitle)+'</div>'+
+      '<div class="title-body">'+
+      '<p class="lead">'+esc(m.intro)+'</p>'+
+      '<ul class="howto">'+m.howto.map(h=>'<li>'+esc(h)+'</li>').join("")+'</ul>'+
+      '<div class="title-btns">'+
+      '<button class="btn" id="tStart">九本目の鳥居をくぐる</button>'+
+      '<button class="btn secondary" id="tLoad">絵馬記録から再開する</button>'+
+      '</div></div></div>';
+    $("tStart").onclick = startGame;
+    $("tLoad").onclick = ()=>openModal("save");
+  }
+
+  // ---------- モーダル ----------
+  const modalBg = $("modalBg"), modalBox = $("modalBox");
+  function closeModal(){ modalBg.classList.remove("open"); }
+  modalBg.addEventListener("click", e=>{ if(e.target===modalBg) closeModal(); });
+
+  function openModal(kind){
+    let html = "";
+    if(kind==="gloss"){
+      html = '<h2>用語集</h2><dl class="gloss">'+
+        STORY.glossary.map(g=>'<dt>'+esc(g.term)+'</dt><dd>'+esc(g.def)+'</dd>').join("")+'</dl>';
+    }
+    if(kind==="items"){
+      const rows = S && S.items.size
+        ? '<dl class="itemlist">'+[...S.items].map(([id,n])=>
+            '<dt>'+esc(STORY.items[id].name)+(n>1?" ×"+n:"")+'</dt><dd>'+esc(STORY.items[id].desc)+'</dd>').join("")+'</dl>'
+        : '<p class="note">いまは何も持っていない。</p>';
+      html = '<h2>持ち物</h2>'+rows;
+    }
+    if(kind==="achv"){
+      const rows = STORY.endingOrder.map(key=>{
+        let name=null;
+        for(const id in STORY.nodes){ const e=STORY.nodes[id].ending;
+          if(e && e.key===key){ name=e.name; break; } }
+        const got = achieved.has(key);
+        return '<li class="'+(got?"got":"not")+'"><span class="mark">'+(got?"到達":"未達")+
+          '</span><span>'+(got?esc(name):"???")+'</span></li>';
+      }).join("");
+      html = '<h2>結末の一覧('+achieved.size+' / '+STORY.endingOrder.length+')</h2>'+
+        '<ul class="achv">'+rows+'</ul>'+
+        '<p class="note">結末は全部で'+STORY.endingOrder.length+'種。落命は結末に数えない。</p>';
+    }
+    if(kind==="log"){
+      const lines = S && S.log.length
+        ? S.log.map(l=>'<div class="logline"><span class="lt">'+esc(l.t)+'</span>'+
+            '<span class="lc">→ '+esc(l.c)+'</span></div>').join("")
+        : '<p class="note">まだ夜歩き録はありません。</p>';
+      html = '<h2>夜歩き録(たどった選択)</h2>'+lines;
+    }
+    if(kind==="save"){
+      const code = S ? makeCode() : "";
+      html = '<h2>絵馬記録(セーブ)</h2>'+
+        '<p class="note">下のコードを控えれば、あとで同じ場所から再開できます。'+
+        '(ブラウザには保存されません)</p>'+
+        '<textarea class="save-area" id="saveOut" readonly>'+esc(code)+'</textarea>'+
+        '<div class="btnrow"><button class="btn" id="copyCode"'+(S?"":" disabled")+'>コードを写す</button></div>'+
+        '<p class="note" style="margin-top:18px">再開するには、控えたコードを貼り付けてください。</p>'+
+        '<textarea class="save-area" id="saveIn" placeholder="ここにコードを貼り付け"></textarea>'+
+        '<div class="btnrow"><button class="btn" id="loadCode">この記録から再開</button></div>'+
+        '<div class="save-msg" id="saveMsg"></div>';
+    }
+    modalBox.innerHTML = html + '<div class="close-row"><button class="btn secondary" id="mClose">閉じる</button></div>';
+    $("mClose").onclick = closeModal;
+    if(kind==="save"){
+      const msg = $("saveMsg");
+      $("copyCode") && ($("copyCode").onclick = ()=>{
+        const ta=$("saveOut"); ta.select();
+        try{ navigator.clipboard ? navigator.clipboard.writeText(ta.value) : document.execCommand("copy");
+          msg.textContent="写しました。安全な場所に控えてください。"; }
+        catch(e){ msg.textContent="全選択されています。手動でコピーしてください。"; }
+      });
+      $("loadCode").onclick = ()=>{
+        const v=$("saveIn").value.trim();
+        if(!v){ msg.textContent="コードが空です。"; return; }
+        try{ loadCode(v); closeModal(); }
+        catch(e){ msg.textContent="コードを読み取れませんでした。写し間違いがないか確認を。"; }
+      };
+    }
+    modalBg.classList.add("open");
+  }
+
+  function makeCode(){
+    const p = { v:3, node:S.node, hp:S.hp, gen:S.gen, items:[...S.items],
+      flags:[...S.flags], visited:[...S.visited], endings:[...achieved], log:S.log.slice(-60) };
+    return btoa(unescape(encodeURIComponent(JSON.stringify(p))));
+  }
+  function loadCode(code){
+    const p = JSON.parse(decodeURIComponent(escape(atob(code))));
+    if(p.v!==3 || !STORY.nodes[p.node]) throw new Error("bad");
+    S = freshState();
+    S.node=p.node; S.hp=p.hp|0; S.gen=p.gen|0;
+    S.items=new Map(p.items||[]); S.flags=new Set(p.flags||[]);
+    S.visited=new Set(p.visited||[]); S.log=p.log||[];
+    achieved = new Set(p.endings||[]);
+    undoStack = [];
+    render();
+    toast("絵馬記録から再開しました");
+  }
+
+  // ---------- トースト ----------
+  function toast(text, cls){
+    const box=$("toasts");
+    const el=document.createElement("div");
+    el.className="toast"+(cls?" "+cls:""); el.textContent=text;
+    el.title="クリックで閉じる";
+    el.onclick = ()=>{ el.classList.remove("show"); setTimeout(()=>el.remove(),300); };
+    box.appendChild(el);
+    requestAnimationFrame(()=>el.classList.add("show"));
+    setTimeout(()=>{ el.classList.remove("show"); setTimeout(()=>el.remove(),400); }, 3400);
+  }
+
+  // ---------- 入力 ----------
+  $("btnUndo").onclick = undo;
+  $("btnGloss").onclick = ()=>openModal("gloss");
+  $("btnItems").onclick = ()=>openModal("items");
+  $("btnAchv").onclick = ()=>openModal("achv");
+  $("btnLog").onclick = ()=>openModal("log");
+  $("btnSave").onclick = ()=>openModal("save");
+  $("btnTitle").onclick = ()=>{ S=null; undoStack=[]; render(); };
+  $("btnDrink").onclick = drink;
+  document.addEventListener("keydown", e=>{
+    if(modalBg.classList.contains("open")){ if(e.key==="Escape") closeModal(); return; }
+    if(!S) return;
+    if(e.key===" " && gameRT && gameRT.kind==="timing"){
+      e.preventDefault();
+      if(gameRT.running) gameRT.stopFn();
+      else if(!gameRT.armed) gameRT.startFn();
+      return;
+    }
+    if(e.key>="1" && e.key<="9"){
+      const btn=document.querySelector('.choice[data-key="'+e.key+'"]');
+      if(btn) btn.click();
+    }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
